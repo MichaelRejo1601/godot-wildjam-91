@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://dmj1es5b4367j"]
+
+[ext_resource type="Texture2D" uid="uid://bmd2jtv7o1scr" path="res://scenes/Player/Player-removebg-preview.png" id="1_h00vy"]
+[ext_resource type="Script" uid="uid://ctuxroow6jifl" path="res://scenes/Player/PlayerController.gd" id="1_ky53y"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
+radius = 57.07889
+
+[node name="Player" type="Node2D" unique_id=201667921]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1711886938]
+script = ExtResource("1_ky53y")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" unique_id=1475280790]
+texture = ExtResource("1_h00vy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1224855715]
+shape = SubResource("CircleShape2D_ky53y")
