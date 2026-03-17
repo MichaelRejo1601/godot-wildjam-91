@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://sikc02ddepyt" path="res://addons/maaacks_game_template/base/nodes/opening/opening.tscn" id="1_ke3tw"]
 [ext_resource type="Texture2D" uid="uid://daput5j66exgu" path="res://assets/godot_engine_logo/logo_vertical_color_dark.png" id="2_yhkvs"]
 [ext_resource type="Texture2D" uid="uid://3jto5c3wibit" path="res://assets/walls/walls_together.png" id="3_yhkvs"]
+[ext_resource type="Texture2D" uid="uid://bqfpxlla5nn6i" path="res://assets/floor/sand.png" id="4_u6ao7"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u6ao7"]
 texture = ExtResource("3_yhkvs")
@@ -18,6 +19,21 @@ texture = ExtResource("3_yhkvs")
 [sub_resource type="TileSet" id="TileSet_baoqs"]
 sources/0 = SubResource("TileSetAtlasSource_u6ao7")
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_baoqs"]
+texture = ExtResource("4_u6ao7")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_kw64e"]
+sources/0 = SubResource("TileSetAtlasSource_baoqs")
+
 [node name="Opening" unique_id=684202726 instance=ExtResource("1_ke3tw")]
 images = Array[Texture2D]([ExtResource("2_yhkvs")])
 
@@ -32,3 +48,7 @@ theme_override_constants/margin_bottom = 64
 [node name="TileMapLayer" type="TileMapLayer" parent="Node2D" index="0" unique_id=935387728]
 tile_map_data = PackedByteArray("AAC2/u7zAAAAAAEAAAC2/u3zAAAAAAEAAAC2/u/zAAAAAAEAAAC2/vDzAAAAAAIAAAC3/vDzAAABAAIAAAC4/vDzAAABAAAAAAC5/vDzAAABAAIAAAC6/vDzAAACAAIAAAC6/u/zAAAAAAAAAAC6/u3zAAAAAAIAAAC6/uzzAAACAAAAAAC2/uzzAAAAAAAAAAC3/uzzAAABAAIAAAC4/uzzAAABAAAAAAC5/uzzAAABAAIAAAC7/u/zAAABAAAAAAC7/u3zAAABAAIAAAC8/u3zAAABAAIAAAC9/u3zAAABAAIAAAC8/u/zAAABAAIAAAC9/u/zAAABAAIAAAC+/uzzAAAAAAEAAAC+/uvzAAAAAAEAAADE/uvzAAAAAAEAAADE/uzzAAAAAAEAAADE/u3zAAAAAAEAAADE/u7zAAAAAAEAAADE/u/zAAAAAAEAAADE/vDzAAAAAAEAAADE/vHzAAAAAAEAAADE/vLzAAACAAIAAADD/vLzAAABAAIAAADC/vLzAAABAAIAAADB/vLzAAABAAAAAADA/vLzAAABAAIAAAC//vLzAAABAAIAAAC+/vLzAAAAAAIAAAC+/vHzAAAAAAEAAAC+/vDzAAAAAAEAAAC+/u/zAAACAAAAAAC+/u3zAAACAAIAAAC//urzAAABAAAAAADA/urzAAABAAIAAADB/urzAAABAAAAAADC/urzAAABAAAAAADD/urzAAABAAIAAAC+/urzAAAAAAAAAADE/urzAAACAAAAAAA=")
 tile_set = SubResource("TileSet_baoqs")
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="Node2D" index="1" unique_id=1496232428]
+tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAIAAADA/u7zAAABAAEAAADC/u/zAAACAAEAAADB/vDzAAAAAAAAAADA/vDzAAABAAIAAADC/uvzAAABAAEAAADC/uzzAAAAAAAAAADB/uzzAAACAAAAAADA/uzzAAAAAAAAAAC//uzzAAAAAAEAAAC//uvzAAABAAIAAADA/uvzAAABAAEAAADB/uvzAAABAAEAAADD/uvzAAABAAIAAADD/uzzAAACAAAAAADD/u3zAAAAAAEAAADD/u7zAAABAAEAAADD/u/zAAAAAAAAAADD/vDzAAABAAEAAADD/vHzAAAAAAAAAADC/vHzAAAAAAEAAADB/vHzAAABAAEAAADA/vHzAAABAAEAAAC//vHzAAABAAIAAAC//vDzAAACAAAAAADB/u/zAAABAAIAAADC/vDzAAABAAIAAADC/u7zAAAAAAAAAADC/u3zAAAAAAAAAADB/u3zAAAAAAAAAADA/u3zAAACAAEAAAC//u3zAAABAAEAAAC//u7zAAAAAAAAAAC//u/zAAABAAIAAADA/u/zAAAAAAEAAADB/u7zAAACAAAAAAC+/u7zAAACAAAAAAC9/u7zAAAAAAAAAAC8/u7zAAABAAEAAAC7/u7zAAAAAAAAAAC6/u7zAAABAAEAAAC5/u3zAAABAAEAAAC4/u3zAAABAAEAAAC4/u7zAAAAAAAAAAC4/u/zAAABAAEAAAC5/u/zAAAAAAAAAAC3/u/zAAACAAAAAAA=")
+tile_set = SubResource("TileSet_kw64e")
