@@ -14,3 +14,4 @@ position = Vector2(140, 0)
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_5xsjt")]
 
 [node name="Dungeon" parent="." unique_id=1936088287 instance=ExtResource("3_ga2yx")]
+z_index = -1
