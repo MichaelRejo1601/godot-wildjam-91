@@ -20,10 +20,10 @@ func _ready() -> void:
 		if root:
 			dungeon_tilemaps.clear()
 			for child in root.get_children():
-				if child is TileMap and (child.name == "Wall" or child.name == "sand"):
+				if child is TileMap:
+					if child.name.contains("Wall"):
+						obstacles = dungeon_tilemaps[0]
 					dungeon_tilemaps.append(child)
-			if dungeon_tilemaps.size() > 0:
-				obstacles = dungeon_tilemaps[0]
 
 func _physics_process(delta: float) -> void:
 	_time += delta
