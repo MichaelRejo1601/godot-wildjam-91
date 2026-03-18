@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
 @onready var wall_layer: TileMapLayer = $WallTileMapLayer
+@onready var escape_label: Label = $EscapeLabel
 
 const SOURCE_ID = 0
 const SAND_TILE = Vector2i(0, 0)
@@ -27,6 +28,10 @@ const ROOM_COUNT = 12
 
 var rng = RandomNumberGenerator.new()
 
+var is_escape_mode = false
+var escape_timer = 0.0
+const ESCAPE_TIME_LIMIT = 60.0
+
 class Room:
 	var rect: Rect2i
 	
@@ -40,6 +45,21 @@ class Room:
 func _ready():
 	rng.randomize()
 	generate_dungeon()
+
+
+func _process(delta):
+	if is_escape_mode:
+		escape_timer += delta
+		update_escape_ui()
+		if escape_timer >= ESCAPE_TIME_LIMIT:
+			game_over()
+
+
+func generate_dungeon():
+	sand_layer.clear()
+	wall_layer.clear()
+
+	var rooms: Array = []
 
 
 func generate_dungeon():
@@ -122,3 +142,21 @@ func carve_h_corridor(x1: int, x2: int, y: int):
 func carve_v_corridor(y1: int, y2: int, x: int):
 	for y in range(min(y1, y2), max(y1, y2) + 1):
 		sand_layer.set_cell(Vector2i(x, y), SOURCE_ID, SAND_TILE)
+
+
+func start_escape():
+	is_escape_mode = true
+	escape_timer = 0.0
+	escape_label.visible = true
+	print("ESCAPE MODE STARTED! You have 60 seconds to escape!")
+
+
+func update_escape_ui():
+	var time_left = ESCAPE_TIME_LIMIT - escape_timer
+	escape_label.text = "ESCAPE! Time: %.1f" % time_left
+
+
+func game_over():
+	print("GAME OVER - Time ran out!")
+	escape_label.text = "GAME OVER!"
+	# TODO: Restart level or show menu
