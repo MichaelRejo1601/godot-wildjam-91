@@ -1,6 +1,7 @@
 [gd_scene format=4 uid="uid://crqb4rvqngaey"]
 
 [ext_resource type="Texture2D" uid="uid://3jto5c3wibit" path="res://assets/walls/walls_together.png" id="1_88q8k"]
+[ext_resource type="Script" uid="uid://jomsy8hktc5r" path="res://scenes/Dungeon/Dungeon.gd" id="1_cdvrn"]
 [ext_resource type="Texture2D" uid="uid://bqfpxlla5nn6i" path="res://assets/floor/sand.png" id="2_cdvrn"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_32pf2"]
@@ -32,12 +33,13 @@ texture = ExtResource("2_cdvrn")
 [sub_resource type="TileSet" id="TileSet_3hanc"]
 sources/0 = SubResource("TileSetAtlasSource_yd457")
 
-[node name="Node2D" type="Node2D" unique_id=1936088287]
+[node name="Dungeon" type="Node2D" unique_id=1936088287]
+script = ExtResource("1_cdvrn")
 
-[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=311266528]
+[node name="WallTileMapLayer" type="TileMapLayer" parent="." unique_id=311266528]
 tile_map_data = PackedByteArray("AAC2/u7zAAAAAAEAAAC2/u3zAAAAAAEAAAC2/u/zAAAAAAEAAAC2/vDzAAAAAAIAAAC3/vDzAAABAAIAAAC4/vDzAAABAAAAAAC5/vDzAAABAAIAAAC6/vDzAAACAAIAAAC6/u/zAAAAAAAAAAC6/u3zAAAAAAIAAAC6/uzzAAACAAAAAAC2/uzzAAAAAAAAAAC3/uzzAAABAAIAAAC4/uzzAAABAAAAAAC5/uzzAAABAAIAAAC7/u/zAAABAAAAAAC7/u3zAAABAAIAAAC8/u3zAAABAAIAAAC9/u3zAAABAAIAAAC8/u/zAAABAAIAAAC9/u/zAAABAAIAAAC+/uzzAAAAAAEAAAC+/uvzAAAAAAEAAADE/uvzAAAAAAEAAADE/uzzAAAAAAEAAADE/u3zAAAAAAEAAADE/u7zAAAAAAEAAADE/u/zAAAAAAEAAADE/vDzAAAAAAEAAADE/vHzAAAAAAEAAADE/vLzAAACAAIAAADD/vLzAAABAAIAAADC/vLzAAABAAIAAADB/vLzAAABAAAAAADA/vLzAAABAAIAAAC//vLzAAABAAIAAAC+/vLzAAAAAAIAAAC+/vHzAAAAAAEAAAC+/vDzAAAAAAEAAAC+/u/zAAACAAAAAAC+/u3zAAACAAIAAAC//urzAAABAAAAAADA/urzAAABAAIAAADB/urzAAABAAAAAADC/urzAAABAAAAAADD/urzAAABAAIAAAC+/urzAAAAAAAAAADE/urzAAACAAAAAAA=")
 tile_set = SubResource("TileSet_xiw1x")
 
-[node name="TileMapLayer2" type="TileMapLayer" parent="." unique_id=987997035]
+[node name="SandTileMapLayer" type="TileMapLayer" parent="." unique_id=987997035]
 tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAIAAADA/u7zAAABAAEAAADC/u/zAAACAAEAAADB/vDzAAAAAAAAAADA/vDzAAABAAIAAADC/uvzAAABAAEAAADC/uzzAAAAAAAAAADB/uzzAAACAAAAAADA/uzzAAAAAAAAAAC//uzzAAAAAAEAAAC//uvzAAABAAIAAADA/uvzAAABAAEAAADB/uvzAAABAAEAAADD/uvzAAABAAIAAADD/uzzAAACAAAAAADD/u3zAAAAAAEAAADD/u7zAAABAAEAAADD/u/zAAAAAAAAAADD/vDzAAABAAEAAADD/vHzAAAAAAAAAADC/vHzAAAAAAEAAADB/vHzAAABAAEAAADA/vHzAAABAAEAAAC//vHzAAABAAIAAAC//vDzAAACAAAAAADB/u/zAAABAAIAAADC/vDzAAABAAIAAADC/u7zAAAAAAAAAADC/u3zAAAAAAAAAADB/u3zAAAAAAAAAADA/u3zAAACAAEAAAC//u3zAAABAAEAAAC//u7zAAAAAAAAAAC//u/zAAABAAIAAADA/u/zAAAAAAEAAADB/u7zAAACAAAAAAC+/u7zAAACAAAAAAC9/u7zAAAAAAAAAAC8/u7zAAABAAEAAAC7/u7zAAAAAAAAAAC6/u7zAAABAAEAAAC5/u3zAAABAAEAAAC4/u3zAAABAAEAAAC4/u7zAAAAAAAAAAC4/u/zAAABAAEAAAC5/u/zAAAAAAAAAAC3/u/zAAACAAAAAAA=")
 tile_set = SubResource("TileSet_3hanc")
