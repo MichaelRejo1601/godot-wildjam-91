@@ -11,6 +11,8 @@ radius = 57.07889
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1711886938]
 script = ExtResource("1_ky53y")
 
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D" unique_id=250210680]
+
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" unique_id=1475280790]
 texture = ExtResource("1_h00vy")
 
