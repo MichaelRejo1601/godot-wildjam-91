@@ -1,9 +1,23 @@
 extends Node2D
 
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
+@onready var wall_layer: TileMapLayer = $WallTileMapLayer
 
 const SOURCE_ID = 0
 const SAND_TILE = Vector2i(0, 0)
+const WALL_TERRAIN_SET = 0
+const WALL_TERRAIN = 0
+
+const NEIGHBOR_OFFSETS: Array[Vector2i] = [
+	Vector2i(-1, -1),
+	Vector2i(0, -1),
+	Vector2i(1, -1),
+	Vector2i(-1, 0),
+	Vector2i(1, 0),
+	Vector2i(-1, 1),
+	Vector2i(0, 1),
+	Vector2i(1, 1),
+]
 
 const MAP_SIZE = 80
 
@@ -30,6 +44,7 @@ func _ready():
 
 func generate_dungeon():
 	sand_layer.clear()
+	wall_layer.clear()
 
 	var rooms: Array = []
 
@@ -57,6 +72,28 @@ func generate_dungeon():
 			connect_rooms(rooms[-1], new_room)
 
 		rooms.append(new_room)
+
+	build_walls_around_sand()
+
+
+func build_walls_around_sand():
+	var wall_candidates: Dictionary = {}
+
+	for sand_cell in sand_layer.get_used_cells():
+		for offset in NEIGHBOR_OFFSETS:
+			var neighbor = sand_cell + offset
+			if sand_layer.get_cell_source_id(neighbor) == -1:
+				wall_candidates[neighbor] = true
+
+	var wall_cells: Array[Vector2i] = []
+	for cell in wall_candidates.keys():
+		wall_cells.append(cell)
+
+	if wall_cells.is_empty():
+		return
+
+	# Use terrain connect so the wall atlas picks correct edge/corner variants.
+	wall_layer.set_cells_terrain_connect(wall_cells, WALL_TERRAIN_SET, WALL_TERRAIN)
 
 
 func carve_room(room: Room):
