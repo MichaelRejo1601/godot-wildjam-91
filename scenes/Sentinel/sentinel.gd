@@ -21,16 +21,9 @@ enum SentinalStates {
 
 var currState: SentinalStates = SentinalStates.IDLE
 
-var health = 3
-var player
-var chasing = false
-
 func _ready() -> void:
 	rng.randomize()
 	_pick_direction()
-	add_to_group("enemies")
-	player = get_tree().get_first_node_in_group("player")
-	$AnimatedSprite2D.play("Idle")
 	if dungeon_root:
 		var root = get_node_or_null(dungeon_root)
 		if root:
@@ -43,32 +36,32 @@ func _ready() -> void:
 	animated_sprite.play("Idle")
 
 func _physics_process(delta: float) -> void:
-	var dist = global_position.distance_to(player.global_position) if player else 1000
-	if dist < 200:
-		chasing = true
-		_dir = (player.global_position - global_position).normalized()
-		$AnimatedSprite2D.play("Run")
+	_time += delta
+	if _time >= change_interval:
+		_time = 0.0
+		_pick_direction()
+	velocity = _dir * speed
+	if velocity.length() > 0:
 		currState = SentinalStates.WALK
 	else:
-		chasing = false
-		$AnimatedSprite2D.play("Idle")
 		currState = SentinalStates.IDLE
-		_time += delta
-		if _time >= change_interval:
-			_time = 0.0
-			_pick_direction()
-	velocity = _dir * speed
+
+	_checkAnimation()
+
 	move_and_slide()
-	if is_on_wall() and not chasing:
+	if is_on_wall():
 		_pick_direction()
 
 func _pick_direction() -> void:
 	var angle = rng.randf_range(0.0, TAU)
 	_dir = Vector2(cos(angle), sin(angle)).normalized()
 
-<<<<<<< HEAD
 
-func take_damage(amount):
-	health -= amount
-	if health <= 0:
-		queue_free()
+func _checkAnimation():
+	match currState:
+		SentinalStates.IDLE:
+			animated_sprite.play("Idle")
+		SentinalStates.ATTACK:
+			animated_sprite.play("Attack")
+		SentinalStates.WALK:
+			animated_sprite.play("Run")
