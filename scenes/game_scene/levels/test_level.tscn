@@ -1,38 +1,7 @@
-[gd_scene format=4 uid="uid://oqarmjo238mp"]
+[gd_scene format=3 uid="uid://oqarmjo238mp"]
 
 [ext_resource type="Script" uid="uid://8ruw3wqlqcnm" path="res://scenes/game_scene/levels/test_level.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_5xsjt"]
-[ext_resource type="Texture2D" uid="uid://3jto5c3wibit" path="res://assets/walls/walls_together.png" id="3_dpxjg"]
-[ext_resource type="Texture2D" uid="uid://bqfpxlla5nn6i" path="res://assets/floor/sand.png" id="4_hu081"]
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_o4mvr"]
-texture = ExtResource("3_dpxjg")
-0:0/0 = 0
-1:0/0 = 0
-2:0/0 = 0
-0:1/0 = 0
-2:1/0 = 0
-0:2/0 = 0
-1:2/0 = 0
-2:2/0 = 0
-
-[sub_resource type="TileSet" id="TileSet_xiw1x"]
-sources/0 = SubResource("TileSetAtlasSource_o4mvr")
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lwywk"]
-texture = ExtResource("4_hu081")
-0:0/0 = 0
-1:0/0 = 0
-2:0/0 = 0
-0:1/0 = 0
-1:1/0 = 0
-2:1/0 = 0
-0:2/0 = 0
-1:2/0 = 0
-2:2/0 = 0
-
-[sub_resource type="TileSet" id="TileSet_3hanc"]
-sources/0 = SubResource("TileSetAtlasSource_lwywk")
 
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
@@ -40,13 +9,3 @@ script = ExtResource("1")
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_5xsjt")]
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=731643654]
-
-[node name="Node2D" type="Node2D" parent="." unique_id=126403853]
-
-[node name="TileMapLayer" type="TileMapLayer" parent="Node2D" unique_id=1402988275]
-tile_map_data = PackedByteArray("AAC2/u7zAAAAAAEAAAC2/u3zAAAAAAEAAAC2/u/zAAAAAAEAAAC2/vDzAAAAAAIAAAC3/vDzAAABAAIAAAC4/vDzAAABAAAAAAC5/vDzAAABAAIAAAC6/vDzAAACAAIAAAC6/u/zAAAAAAAAAAC6/u3zAAAAAAIAAAC6/uzzAAACAAAAAAC2/uzzAAAAAAAAAAC3/uzzAAABAAIAAAC4/uzzAAABAAAAAAC5/uzzAAABAAIAAAC7/u/zAAABAAAAAAC7/u3zAAABAAIAAAC8/u3zAAABAAIAAAC9/u3zAAABAAIAAAC8/u/zAAABAAIAAAC9/u/zAAABAAIAAAC+/uzzAAAAAAEAAAC+/uvzAAAAAAEAAADE/uvzAAAAAAEAAADE/uzzAAAAAAEAAADE/u3zAAAAAAEAAADE/u7zAAAAAAEAAADE/u/zAAAAAAEAAADE/vDzAAAAAAEAAADE/vHzAAAAAAEAAADE/vLzAAACAAIAAADD/vLzAAABAAIAAADC/vLzAAABAAIAAADB/vLzAAABAAAAAADA/vLzAAABAAIAAAC//vLzAAABAAIAAAC+/vLzAAAAAAIAAAC+/vHzAAAAAAEAAAC+/vDzAAAAAAEAAAC+/u/zAAACAAAAAAC+/u3zAAACAAIAAAC//urzAAABAAAAAADA/urzAAABAAIAAADB/urzAAABAAAAAADC/urzAAABAAAAAADD/urzAAABAAIAAAC+/urzAAAAAAAAAADE/urzAAACAAAAAAA=")
-tile_set = SubResource("TileSet_xiw1x")
-
-[node name="TileMapLayer2" type="TileMapLayer" parent="Node2D" unique_id=1512555926]
-tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAIAAADA/u7zAAABAAEAAADC/u/zAAACAAEAAADB/vDzAAAAAAAAAADA/vDzAAABAAIAAADC/uvzAAABAAEAAADC/uzzAAAAAAAAAADB/uzzAAACAAAAAADA/uzzAAAAAAAAAAC//uzzAAAAAAEAAAC//uvzAAABAAIAAADA/uvzAAABAAEAAADB/uvzAAABAAEAAADD/uvzAAABAAIAAADD/uzzAAACAAAAAADD/u3zAAAAAAEAAADD/u7zAAABAAEAAADD/u/zAAAAAAAAAADD/vDzAAABAAEAAADD/vHzAAAAAAAAAADC/vHzAAAAAAEAAADB/vHzAAABAAEAAADA/vHzAAABAAEAAAC//vHzAAABAAIAAAC//vDzAAACAAAAAADB/u/zAAABAAIAAADC/vDzAAABAAIAAADC/u7zAAAAAAAAAADC/u3zAAAAAAAAAADB/u3zAAAAAAAAAADA/u3zAAACAAEAAAC//u3zAAABAAEAAAC//u7zAAAAAAAAAAC//u/zAAABAAIAAADA/u/zAAAAAAEAAADB/u7zAAACAAAAAAC+/u7zAAACAAAAAAC9/u7zAAAAAAAAAAC8/u7zAAABAAEAAAC7/u7zAAAAAAAAAAC6/u7zAAABAAEAAAC5/u3zAAABAAEAAAC4/u3zAAABAAEAAAC4/u7zAAAAAAAAAAC4/u/zAAABAAEAAAC5/u/zAAAAAAAAAAC3/u/zAAACAAAAAAA=")
-tile_set = SubResource("TileSet_3hanc")
