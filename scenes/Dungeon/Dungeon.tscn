@@ -3,6 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://3jto5c3wibit" path="res://assets/walls/walls_together.png" id="1_88q8k"]
 [ext_resource type="Script" uid="uid://jomsy8hktc5r" path="res://scenes/Dungeon/Dungeon.gd" id="1_cdvrn"]
 [ext_resource type="Texture2D" uid="uid://bqfpxlla5nn6i" path="res://assets/floor/sand.png" id="2_cdvrn"]
+[ext_resource type="PackedScene" uid="uid://1dthge8ybjd4" path="res://scenes/Sentinel/sentinel.tscn" id="3_sentinel"]
+[ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="4_player"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_32pf2"]
 texture = ExtResource("1_88q8k")
@@ -43,3 +45,9 @@ tile_set = SubResource("TileSet_xiw1x")
 [node name="SandTileMapLayer" type="TileMapLayer" parent="." unique_id=987997035]
 tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAIAAADA/u7zAAABAAEAAADC/u/zAAACAAEAAADB/vDzAAAAAAAAAADA/vDzAAABAAIAAADC/uvzAAABAAEAAADC/uzzAAAAAAAAAADB/uzzAAACAAAAAADA/uzzAAAAAAAAAAC//uzzAAAAAAEAAAC//uvzAAABAAIAAADA/uvzAAABAAEAAADB/uvzAAABAAEAAADD/uvzAAABAAIAAADD/uzzAAACAAAAAADD/u3zAAAAAAEAAADD/u7zAAABAAEAAADD/u/zAAAAAAAAAADD/vDzAAABAAEAAADD/vHzAAAAAAAAAADC/vHzAAAAAAEAAADB/vHzAAABAAEAAADA/vHzAAABAAEAAAC//vHzAAABAAIAAAC//vDzAAACAAAAAADB/u/zAAABAAIAAADC/vDzAAABAAIAAADC/u7zAAAAAAAAAADC/u3zAAAAAAAAAADB/u3zAAAAAAAAAADA/u3zAAACAAEAAAC//u3zAAABAAEAAAC//u7zAAAAAAAAAAC//u/zAAABAAIAAADA/u/zAAAAAAEAAADB/u7zAAACAAAAAAC+/u7zAAACAAAAAAC9/u7zAAAAAAAAAAC8/u7zAAABAAEAAAC7/u7zAAAAAAAAAAC6/u7zAAABAAEAAAC5/u3zAAABAAEAAAC4/u3zAAABAAEAAAC4/u7zAAAAAAAAAAC4/u/zAAABAAEAAAC5/u/zAAAAAAAAAAC3/u/zAAACAAAAAAA=")
 tile_set = SubResource("TileSet_3hanc")
+
+[node name="Sentinel" parent="." instance=ExtResource("3_sentinel")]
+position = Vector2(100, 100)
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+position = Vector2(0, 0)
