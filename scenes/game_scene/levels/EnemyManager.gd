@@ -26,9 +26,9 @@ func _load_rooms() -> void:
 			print("ThisMansentinal", sentinalsInThisRoom)
 			for s in range(sentinalsInThisRoom):
 				var sent = sentinal.instantiate()
+				add_child(sent)
 				var sand_layer = dungeon.get_node("SandTileMapLayer") as TileMapLayer
 				sent.global_position = sand_layer.to_global(sand_layer.map_to_local(r.center()))
-				add_child(sent)
 			print("Loading Room: ", r.center())
 	else:
 		push_warning("EnemyManager: dungeon_path is not set or node not found.")
