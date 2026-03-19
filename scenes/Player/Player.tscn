@@ -6,23 +6,6 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 57.07889
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_whip"]
-radius = 10.0
-height = 60.0
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_attack"]
-animations = [{
-"frames": [],
-"loop": true,
-"name": &"attack",
-"speed": 5.0
-}, {
-"frames": [],
-"loop": true,
-"name": &"idle",
-"speed": 5.0
-}]
-
 [node name="Player" type="Node2D" unique_id=201667921]
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1711886938]
@@ -33,13 +16,5 @@ script = ExtResource("1_ky53y")
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" unique_id=1475280790]
 texture = ExtResource("1_h00vy")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=123456789]
-sprite_frames = SubResource("SpriteFrames_attack")
-animation = &"idle"
-
-[node name="Area2D" type="Area2D" parent="CharacterBody2D" unique_id=987654321]
-position = Vector2(80, 0)
-monitoring = false
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="CharacterBody2D/Area2D" unique_id=112233445]
-shape = SubResource("CapsuleShape2D_whip")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1224855715]
+shape = SubResource("CircleShape2D_ky53y")
