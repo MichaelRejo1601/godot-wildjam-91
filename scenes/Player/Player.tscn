@@ -14,7 +14,9 @@ script = ExtResource("1_ky53y")
 [node name="Camera2D" type="Camera2D" parent="CharacterBody2D" unique_id=250210680]
 
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" unique_id=1475280790]
+visible = false
 texture = ExtResource("1_h00vy")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1224855715]
 shape = SubResource("CircleShape2D_ky53y")
+disabled = true

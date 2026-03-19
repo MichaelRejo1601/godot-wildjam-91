@@ -1,12 +1,18 @@
-[gd_scene format=3 uid="uid://oqarmjo238mp"]
+[gd_scene format=3 uid="uid://bqtwc28e47fci"]
 
 [ext_resource type="Script" uid="uid://8ruw3wqlqcnm" path="res://scenes/game_scene/levels/test_level.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_5xsjt"]
 [ext_resource type="PackedScene" uid="uid://1dthge8ybjd4" path="res://scenes/Sentinel/Sentinel.tscn" id="2_dpxjg"]
+[ext_resource type="Script" uid="uid://bnxsrkmkd17i4" path="res://scenes/game_scene/levels/EnemyManager.gd" id="2_hu081"]
 [ext_resource type="PackedScene" uid="uid://crqb4rvqngaey" path="res://scenes/Dungeon/Dungeon.tscn" id="3_ga2yx"]
 
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
+
+[node name="EnemyManager" type="Node2D" parent="." unique_id=1235624727]
+script = ExtResource("2_hu081")
+sentinal = ExtResource("2_dpxjg")
+dungeon_path = NodePath("../Dungeon")
 
 [node name="Sentinel" parent="." unique_id=470938059 instance=ExtResource("2_dpxjg")]
 position = Vector2(140, 0)

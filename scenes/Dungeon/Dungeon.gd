@@ -1,3 +1,4 @@
+class_name Dungeon
 extends Node2D
 
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
@@ -24,6 +25,7 @@ const MAP_SIZE = 80
 const ROOM_MIN_SIZE = 4
 const ROOM_MAX_SIZE = 10
 const ROOM_COUNT = 12
+var rooms: Array = []
 
 var rng = RandomNumberGenerator.new()
 
@@ -46,7 +48,6 @@ func generate_dungeon():
 	sand_layer.clear()
 	wall_layer.clear()
 
-	var rooms: Array = []
 
 	for i in range(ROOM_COUNT):
 		var w = rng.randi_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE)
