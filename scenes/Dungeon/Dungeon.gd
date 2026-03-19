@@ -6,7 +6,17 @@ extends Node2D
 @onready var sandy_wall_layer: TileMapLayer = $SandyWallTileMapLayer 
 
 const SOURCE_ID = 0
-const SAND_TILE = Vector2i(0, 0)
+const SAND_TILES: Array[Vector2i] = [
+	Vector2i(0, 0),
+	Vector2i(1, 0),
+	Vector2i(2, 0),
+	Vector2i(0, 1),
+	Vector2i(1, 1),
+	Vector2i(2, 1),
+	Vector2i(0, 2),
+	Vector2i(1, 2),
+	Vector2i(2, 2),
+]
 const WALL_TERRAIN_SET = 0
 const WALL_TERRAIN = 0
 
@@ -101,7 +111,7 @@ func build_walls_around_sand():
 func carve_room(room: Room):
 	for x in range(room.rect.position.x, room.rect.end.x):
 		for y in range(room.rect.position.y, room.rect.end.y):
-			sand_layer.set_cell(Vector2i(x, y), SOURCE_ID, SAND_TILE)
+			set_random_sand_cell(Vector2i(x, y))
 
 
 func connect_rooms(a: Room, b: Room):
@@ -118,9 +128,14 @@ func connect_rooms(a: Room, b: Room):
 
 func carve_h_corridor(x1: int, x2: int, y: int):
 	for x in range(min(x1, x2), max(x1, x2) + 1):
-		sand_layer.set_cell(Vector2i(x, y), SOURCE_ID, SAND_TILE)
+		set_random_sand_cell(Vector2i(x, y))
 
 
 func carve_v_corridor(y1: int, y2: int, x: int):
 	for y in range(min(y1, y2), max(y1, y2) + 1):
-		sand_layer.set_cell(Vector2i(x, y), SOURCE_ID, SAND_TILE)
+		set_random_sand_cell(Vector2i(x, y))
+
+
+func set_random_sand_cell(cell: Vector2i):
+	var sand_tile = SAND_TILES[rng.randi_range(0, SAND_TILES.size() - 1)]
+	sand_layer.set_cell(cell, SOURCE_ID, sand_tile)
