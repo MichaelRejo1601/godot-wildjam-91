@@ -3,6 +3,7 @@ extends Node2D
 
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
 @onready var wall_layer: TileMapLayer = $WallTileMapLayer
+@onready var sandy_wall_layer: TileMapLayer = $SandyWallTileMapLayer 
 
 const SOURCE_ID = 0
 const SAND_TILE = Vector2i(0, 0)
@@ -47,7 +48,7 @@ func _ready():
 func generate_dungeon():
 	sand_layer.clear()
 	wall_layer.clear()
-
+	sandy_wall_layer.clear()
 
 	for i in range(ROOM_COUNT):
 		var w = rng.randi_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE)
