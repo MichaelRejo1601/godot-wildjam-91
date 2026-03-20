@@ -27,5 +27,5 @@ func _on_body_entered(body: Node) -> void:
 	if body == target and body is CharacterBody2D:
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
-		body.velocity += direction * knockback
+		# body.velocity += direction * knockback
 	queue_free()
