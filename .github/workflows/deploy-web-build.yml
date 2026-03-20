@@ -1,15 +1,22 @@
-name: Build Web
+name: Deploy Web Build
 
 on:
-  pull_request:
-    branches: [main, master]
   workflow_dispatch:
 
 env:
   GODOT_VERSION: "4.6"
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  export-web:
+  build:
     name: Web Export
     runs-on: ubuntu-latest
     container:
@@ -32,9 +39,20 @@ jobs:
           mkdir -v -p build/web
           godot --headless --verbose --export-release "Web" build/web/index.html
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: web-build
-          path: build/web/
+          path: build/web
 
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
