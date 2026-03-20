@@ -13,6 +13,12 @@ var player_near := false
 var waiting_for_reach_in := false
 var looted := false
 var current_player: Node2D = null
+var mimic_sequence_active := false
+
+const MIMIC_BITE_DURATION = 2
+const CAMERA_ZOOM_IN_TIME = 0.35
+const CAMERA_ZOOM_OUT_TIME = 0.45
+const CAMERA_ZOOM_IN_FACTOR = 1.45
 
 
 func _ready() -> void:
@@ -24,7 +30,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not player_near:
+	if not player_near or mimic_sequence_active:
 		return
 	if Input.is_action_just_pressed("interact"):
 		_handle_interact()
@@ -40,7 +46,8 @@ func _handle_interact() -> void:
 
 	if not waiting_for_reach_in:
 		if is_mimic:
-			animated_sprite.play("Mimic")
+			# "Looted" is the coin-open visual in this sprite sheet.
+			animated_sprite.play("Looted")
 		else:
 			animated_sprite.play("Looted")
 		waiting_for_reach_in = true
@@ -48,12 +55,7 @@ func _handle_interact() -> void:
 		return
 
 	if is_mimic:
-		spawn_blood_on_ground()
-		if current_player != null and is_instance_valid(current_player) and current_player.has_method("take_damage"):
-			current_player.take_damage(1)
-		animated_sprite.play("Closed")
-		waiting_for_reach_in = false
-		_update_prompt()
+		start_mimic_trap_sequence()
 		return
 
 	animated_sprite.play("Open")
@@ -94,7 +96,7 @@ func _resolve_player_node(body: Node) -> Node2D:
 
 
 func _update_prompt() -> void:
-	if not player_near or looted:
+	if not player_near or looted or mimic_sequence_active:
 		prompt_label.visible = false
 		return
 
@@ -103,6 +105,45 @@ func _update_prompt() -> void:
 		prompt_label.text = "%s Reach in" % INTERACT_ICON
 	else:
 		prompt_label.text = "%s Open" % INTERACT_ICON
+
+
+func start_mimic_trap_sequence() -> void:
+	if mimic_sequence_active:
+		return
+
+	mimic_sequence_active = true
+	prompt_label.visible = false
+
+	var player_camera: Camera2D = null
+	var original_zoom := Vector2.ONE
+	if current_player != null and is_instance_valid(current_player):
+		if current_player.has_method("set_controls_locked"):
+			current_player.set_controls_locked(true)
+		player_camera = current_player.get_node_or_null("Camera2D") as Camera2D
+		if player_camera != null:
+			original_zoom = player_camera.zoom
+			var zoom_in_tween = create_tween()
+			zoom_in_tween.tween_property(player_camera, "zoom", original_zoom * CAMERA_ZOOM_IN_FACTOR, CAMERA_ZOOM_IN_TIME)
+	animated_sprite.play("Mimic")
+
+	await get_tree().create_timer(MIMIC_BITE_DURATION).timeout
+
+	animated_sprite.play("Closed")
+	spawn_blood_on_ground()
+	if current_player != null and is_instance_valid(current_player) and current_player.has_method("take_damage"):
+		current_player.take_damage(1)
+	waiting_for_reach_in = false
+
+	if player_camera != null:
+		var zoom_out_tween = create_tween()
+		zoom_out_tween.tween_property(player_camera, "zoom", original_zoom, CAMERA_ZOOM_OUT_TIME)
+		await zoom_out_tween.finished
+
+	if current_player != null and is_instance_valid(current_player) and current_player.has_method("set_controls_locked"):
+		current_player.set_controls_locked(false)
+
+	mimic_sequence_active = false
+	_update_prompt()
 
 
 func spawn_blood_on_ground() -> void:

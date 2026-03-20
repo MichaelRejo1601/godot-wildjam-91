@@ -29,7 +29,10 @@ func _place_player_on_sand() -> void:
 
 
 func _setup_health_bar() -> void:
-	var player = get_node_or_null("Player/CharacterBody2D")
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		# Backward compatibility if the character body keeps its older node name.
+		player = get_node_or_null("Player/CharacterBody2D")
 	var health_bar = get_node_or_null("UI/HealthBar")
 	if player == null or health_bar == null:
 		push_warning("TestLevel: Missing Player or HealthBar; cannot wire health UI.")

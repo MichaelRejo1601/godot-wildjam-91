@@ -8,6 +8,7 @@ const SPRINT_ANIM_SPEED_SCALE = 1.35
 const MAX_HP = 14
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
+@onready var lantern: PointLight2D = $Lantern
 
 const HIT_SHAKE_ANGLE_DEG = 5.0
 const HIT_SHAKE_STEP_TIME = 0.025
@@ -23,6 +24,7 @@ var current_state: PlayerStates = PlayerStates.IDLE_RIGHT
 var facing_left := false
 var current_health := MAX_HP
 var hit_shake_tween: Tween
+var controls_locked := false
 
 
 func _ready() -> void:
@@ -30,11 +32,18 @@ func _ready() -> void:
 	if camera != null:
 		# Camera2D ignores parent/node rotation by default.
 		camera.ignore_rotation = false
+	update_lantern_from_health()
 	health_changed.emit(current_health)
 	update_animation(Vector2.ZERO, false)
 
 
 func _physics_process(_delta: float) -> void:
+	if controls_locked:
+		velocity = Vector2.ZERO
+		update_animation(Vector2.ZERO, false)
+		move_and_slide()
+		return
+
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var sprint_pressed := Input.is_key_pressed(KEY_SPACE) or Input.is_key_pressed(KEY_SHIFT) or Input.is_action_pressed("ui_accept")
 	var is_sprinting := sprint_pressed and input_direction.length_squared() > 0.0
@@ -82,6 +91,7 @@ func take_damage(amount: int = 1) -> void:
 	current_health = max(current_health - amount, 0)
 	if current_health < previous_health:
 		play_hit_camera_shake()
+	update_lantern_from_health()
 	health_changed.emit(current_health)
 
 
@@ -98,3 +108,18 @@ func play_hit_camera_shake() -> void:
 	hit_shake_tween.tween_property(camera, "rotation_degrees", -HIT_SHAKE_ANGLE_DEG, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", HIT_SHAKE_ANGLE_DEG * 0.6, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", 0.0, HIT_SHAKE_STEP_TIME)
+
+
+func set_controls_locked(value: bool) -> void:
+	controls_locked = value
+	if controls_locked:
+		velocity = Vector2.ZERO
+
+
+func update_lantern_from_health() -> void:
+	if lantern == null:
+		return
+
+	if lantern.has_method("set_health_ratio"):
+		var ratio = float(current_health) / float(MAX_HP)
+		lantern.set_health_ratio(ratio)
