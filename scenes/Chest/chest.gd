@@ -37,7 +37,7 @@ func _handle_interact() -> void:
 		if is_mimic:
 			animated_sprite.play("Mimic")
 		else:
-			animated_sprite.play("Open")
+			animated_sprite.play("Looted")
 		waiting_for_reach_in = true
 		_update_prompt()
 		return
@@ -48,21 +48,28 @@ func _handle_interact() -> void:
 		_update_prompt()
 		return
 
-	animated_sprite.play("Looted")
+	animated_sprite.play("Open")
 	looted = true
 	_update_prompt()
 
 
 func _on_interact_area_body_entered(body: Node) -> void:
-	if body.is_in_group("player"):
+	if _is_player_body(body):
 		player_near = true
 		_update_prompt()
 
 
 func _on_interact_area_body_exited(body: Node) -> void:
-	if body.is_in_group("player"):
+	if _is_player_body(body):
 		player_near = false
 		_update_prompt()
+
+
+func _is_player_body(body: Node) -> bool:
+	if body.is_in_group("player"):
+		return true
+	var parent = body.get_parent()
+	return parent != null and parent.is_in_group("player")
 
 
 func _update_prompt() -> void:

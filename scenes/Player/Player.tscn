@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bhaxckxpq20j1" path="res://assets/characters/raider.png" id="2_ky53y"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
-radius = 57.07889
+radius = 7.5
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bvqhm"]
 atlas = ExtResource("2_ky53y")
@@ -95,7 +95,7 @@ zoom = Vector2(4, 4)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1224855715]
 shape = SubResource("CircleShape2D_ky53y")
-disabled = true
+disabled = false
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=1761767343]
 sprite_frames = SubResource("SpriteFrames_tl8lu")
