@@ -2,14 +2,10 @@
 
 [ext_resource type="Script" uid="uid://ctuxroow6jifl" path="res://scenes/Player/PlayerController.gd" id="1_ky53y"]
 [ext_resource type="Texture2D" uid="uid://bhaxckxpq20j1" path="res://assets/characters/raider.png" id="2_ky53y"]
-[ext_resource type="Script" path="res://scenes/Player/lantern_flicker.gd" id="3_lantern"]
+[ext_resource type="Script" uid="uid://bn2dwkojkqh5a" path="res://scenes/Player/lantern_flicker.gd" id="3_lantern"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_whip"]
-radius = 8.0
-height = 20.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bvqhm"]
 atlas = ExtResource("2_ky53y")
@@ -99,6 +95,10 @@ gradient = SubResource("Gradient_ky53y")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_whip"]
+radius = 8.0
+height = 20.0
 
 [node name="Player" type="Node2D" unique_id=201667921]
 

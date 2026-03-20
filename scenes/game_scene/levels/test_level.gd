@@ -5,6 +5,7 @@ func _ready() -> void:
 	# Defer so Dungeon._ready() has generated the tilemap before we query sand cells.
 	call_deferred("_place_player_on_sand")
 	call_deferred("_setup_health_bar")
+	call_deferred("_setup_madness_bar")
 
 
 func _place_player_on_sand() -> void:
@@ -42,3 +43,19 @@ func _setup_health_bar() -> void:
 		player.health_changed.connect(Callable(health_bar, "update_health"))
 
 	health_bar.update_health(player.current_health)
+
+
+func _setup_madness_bar() -> void:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		# Backward compatibility if the character body keeps its older node name.
+		player = get_node_or_null("Player/CharacterBody2D")
+	var madness_bar = get_node_or_null("UI/MadnessBar")
+	if player == null or madness_bar == null:
+		push_warning("TestLevel: Missing Player or MadnessBar; cannot wire madness UI.")
+		return
+
+	if player.has_signal("madness_changed"):
+		player.madness_changed.connect(Callable(madness_bar, "update_madness"))
+
+	madness_bar.update_madness(player.current_madness)

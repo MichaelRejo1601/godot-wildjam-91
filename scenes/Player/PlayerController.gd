@@ -1,11 +1,14 @@
 extends CharacterBody2D
 
 signal health_changed(hp: int)
+signal madness_changed(madness: int)
 
 const SPEED = 70.0
 const SPRINT_MULTIPLIER = 1.75
 const SPRINT_ANIM_SPEED_SCALE = 1.35
 const MAX_HP = 14
+const MAX_MADNESS = 14
+const MADNESS_FILL_DURATION = 60.0
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var lantern: PointLight2D = $Lantern
@@ -23,6 +26,8 @@ enum PlayerStates {
 var current_state: PlayerStates = PlayerStates.IDLE_RIGHT
 var facing_left := false
 var current_health := MAX_HP
+var current_madness := 0
+var madness_elapsed := 0.0
 var hit_shake_tween: Tween
 var controls_locked := false
 
@@ -40,6 +45,7 @@ func _ready() -> void:
 		camera.ignore_rotation = false
 	update_lantern_from_health()
 	health_changed.emit(current_health)
+	madness_changed.emit(current_madness)
 	update_animation(Vector2.ZERO, false)
 	
 	# Connect whip hitbox signal
@@ -48,6 +54,8 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	_update_madness(_delta)
+
 	if controls_locked:
 		velocity = Vector2.ZERO
 		update_animation(Vector2.ZERO, false)
@@ -70,6 +78,20 @@ func _physics_process(_delta: float) -> void:
 	# Handle whip attack input
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0 and not is_attacking:
 		perform_whip_attack()
+
+
+func _update_madness(delta: float) -> void:
+	if current_madness >= MAX_MADNESS:
+		return
+
+	madness_elapsed = min(madness_elapsed + delta, MADNESS_FILL_DURATION)
+	var ratio := madness_elapsed / MADNESS_FILL_DURATION
+	var next_madness := int(round(ratio * MAX_MADNESS))
+	if next_madness == current_madness:
+		return
+
+	current_madness = next_madness
+	madness_changed.emit(current_madness)
 
 
 func update_animation(input_direction: Vector2, is_sprinting: bool) -> void:
