@@ -126,3 +126,34 @@ func play_hit_camera_shake() -> void:
 	hit_shake_tween.tween_property(camera, "rotation_degrees", -HIT_SHAKE_ANGLE_DEG, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", HIT_SHAKE_ANGLE_DEG * 0.6, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", 0.0, HIT_SHAKE_STEP_TIME)
+
+func set_controls_locked(value: bool) -> void:
+	controls_locked = value
+	if controls_locked:
+		velocity = Vector2.ZERO
+
+
+func update_lantern_from_health() -> void:
+	if lantern == null:
+		return
+
+	if lantern.has_method("set_health_ratio"):
+		var ratio = float(current_health) / float(MAX_HP)
+		lantern.set_health_ratio(ratio)
+
+
+func perform_whip_attack() -> void:
+	is_attacking = true
+	attack_cooldown = ATTACK_COOLDOWN_TIME
+	if whip_hitbox != null:
+		whip_hitbox.monitoring = true
+		whip_hitbox.position.x = 15.0 if not facing_left else -15.0
+	await get_tree().create_timer(0.3).timeout
+	if whip_hitbox != null:
+		whip_hitbox.monitoring = false
+	is_attacking = false
+
+
+func _on_whip_hitbox_body_entered(body: Node2D) -> void:
+	if body.is_in_group("enemies") and body.has_method("take_damage"):
+		body.take_damage(1)
