@@ -15,11 +15,12 @@ var dungeon_tilemaps: Array = []
 @export var attack_range: float = 24.0
 @export var attack_knockback: float = 200.0
 @export var active_range: float = 200.0
+@export var attackSpeed: float = 40
 @export var player: Node2D
+@export var knockback: float = 90
 
 var _foundPlaye: bool = false
 
-const LaserBeamScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
 
 var _dir: Vector2 = Vector2.RIGHT
 var _time: float = 0.0
@@ -29,8 +30,8 @@ var _attackInterval: float
 
 enum SentinalStates {
 	IDLE, 
-	WALK,
-	ATTACK
+	ATTACK,
+	KNOCKBACK
 }
 
 var currState: SentinalStates = SentinalStates.IDLE
@@ -68,32 +69,29 @@ func _physics_process(delta: float) -> void:
 			_foundPlaye = true
 			visible = true
 			$CollisionShape2D.disabled = false
-
-	_attackTime += delta
-	_time += delta
-	if _time >= change_interval:
-		_time = 0.0
-		_pick_direction()
-	if currState != SentinalStates.ATTACK:
-		velocity = _dir * speed
-	else:
-		velocity = Vector2.ZERO
-	if velocity.length() > 0:
-		currState = SentinalStates.WALK
-	else:
+	if _has_line_of_sight() and currState != SentinalStates.KNOCKBACK:
+		currState = SentinalStates.ATTACK
+	elif currState != SentinalStates.KNOCKBACK: 
 		currState = SentinalStates.IDLE
-
-	if _attackTime >= _attackInterval and currState != SentinalStates.ATTACK:
-		if _has_line_of_sight():
-			currState = SentinalStates.ATTACK
-	_checkAnimation()
+	# print(currState)
+	_checkAnimation(delta)
 
 	move_and_slide()
 	if is_on_wall():
 		_pick_direction()
 
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		# print("Collided with: ", collision.get_collider().name)
+		if collision.get_collider().name == "Player" and _has_line_of_sight():
+			# currState = SentinalStates.IDLE
+			var to_player := player.global_position - global_position
+			var dir := to_player.normalized()
+			currState = SentinalStates.KNOCKBACK
+			queue_free()
+			# velocity = -dir * 40
+
 func _pick_direction() -> void:
-	var angle = rng.randf_range(0.0, TAU)
 	if player and is_instance_valid(player):
 		_dir = (player.global_position - global_position).normalized()
 
@@ -102,31 +100,28 @@ func _attack() -> void:
 	currState = SentinalStates.ATTACK
 	_attackTime = 0.0
 
-func _checkAnimation():
+func _checkAnimation(delta: float):
 	match currState:
 		SentinalStates.IDLE:
+			velocity = Vector2.ZERO
 			if animated_sprite.animation != "Idle":
 				animated_sprite.play("Idle")
 		SentinalStates.ATTACK:
-			if animated_sprite.animation != "Attack":
-				animated_sprite.play("Attack")
-		SentinalStates.WALK:
-			if animated_sprite.animation != "Run":
-				animated_sprite.play("Run")
-
-
-func _on_animation_finished() -> void:
-	if currState == SentinalStates.ATTACK:
-		currState = SentinalStates.IDLE
-		_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
-		_attackTime = 0.0
-
-
-func _on_AnimatedSprite2D_frame_changed() -> void:
-	# Trigger attack when the 8th frame (index 7) of the "Attack" animation plays
-	if currState == SentinalStates.ATTACK and animated_sprite.frame == 8:
-		# print("Attacking")
-		_attack_player()
+			_attack_player()
+			if animated_sprite.animation != "Roll":
+				animated_sprite.play("Roll")
+		SentinalStates.KNOCKBACK:
+			if _has_line_of_sight():
+				print("adding Knockback")
+				var to_player := player.global_position - global_position
+				var dir := to_player.normalized()
+				currState = SentinalStates.KNOCKBACK
+				velocity = -dir * knockback
+				_attackTime += delta
+				if _attackTime > attack_interval_min:
+					_attackTime = 0
+					currState = SentinalStates.IDLE
+					print("Finished ")
 
 
 func _has_line_of_sight() -> bool:
@@ -144,21 +139,8 @@ func _attack_player() -> void:
 		return
 	var to_player := player.global_position - global_position
 	var dir := to_player.normalized()
+	velocity = dir * attackSpeed
 
-	var laser: Node2D = LaserBeamScene.instantiate()
-	laser.direction = dir
-	laser.target = player
-	laser.source = self
-	laser.knockback = attack_knockback
-	get_parent().add_child(laser)
-	laser.global_position = global_position
-	print("Sentinel fired laser toward ", player.global_position)
+	
 
 	_attackTime = 0.0
-
-
-func _on_animated_sprite_2d_animation_finished() -> void:
-	if currState == SentinalStates.ATTACK:
-		currState = SentinalStates.IDLE
-		_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
-		_attackTime = 0.0

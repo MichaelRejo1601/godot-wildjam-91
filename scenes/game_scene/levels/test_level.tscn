@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://1dthge8ybjd4" path="res://scenes/Sentinel/Sentinel.tscn" id="2_dpxjg"]
 [ext_resource type="Script" uid="uid://bnxsrkmkd17i4" path="res://scenes/game_scene/levels/EnemyManager.gd" id="2_hu081"]
 [ext_resource type="PackedScene" uid="uid://crqb4rvqngaey" path="res://scenes/Dungeon/Dungeon.tscn" id="3_ga2yx"]
+[ext_resource type="PackedScene" uid="uid://bm7xae2jca5bm" path="res://scenes/Mummy/Mummy.tscn" id="6_o4mvr"]
 
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
@@ -17,9 +18,13 @@ dungeon_path = NodePath("../Dungeon")
 position = Vector2(140, 0)
 attack_interval_min = 1.0
 attack_interval_max = 2.0
+active_range = 200.0
 player = NodePath("../Player")
 
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_5xsjt")]
 
 [node name="Dungeon" parent="." unique_id=1936088287 instance=ExtResource("3_ga2yx")]
 z_index = -1
+
+[node name="Mummy" parent="." unique_id=726255195 instance=ExtResource("6_o4mvr")]
+attack_interval_min = 0.01
