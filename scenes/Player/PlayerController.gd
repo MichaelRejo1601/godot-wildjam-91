@@ -16,6 +16,7 @@ var facing_left := false
 
 
 func _ready() -> void:
+	add_to_group("player")
 	update_animation(Vector2.ZERO)
 
 

@@ -1,6 +1,10 @@
 [gd_scene format=3 uid="uid://sd176wxmispb"]
 
 [ext_resource type="Texture2D" uid="uid://bxtgbbtsdrp25" path="res://assets/chest/treasure_chest.png" id="1_ynxvs"]
+[ext_resource type="Script" path="res://scenes/Chest/chest.gd" id="2_chest"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0nxwq"]
+radius = 20.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ewlxh"]
 atlas = ExtResource("1_ynxvs")
@@ -151,8 +155,23 @@ animations = [{
 }]
 
 [node name="Chest" type="Node2D" unique_id=388380434]
+script = ExtResource("2_chest")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=40840076]
 sprite_frames = SubResource("SpriteFrames_11upt")
-animation = &"Open"
-frame_progress = 0.35338068
+animation = &"Closed"
+
+[node name="InteractArea2D" type="Area2D" parent="." unique_id=932486200]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractArea2D" unique_id=1927784062]
+shape = SubResource("CircleShape2D_0nxwq")
+
+[node name="PromptLabel" type="Label" parent="." unique_id=1300750255]
+offset_left = -56.0
+offset_top = -30.0
+offset_right = 56.0
+offset_bottom = -8.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Press E to open"
+visible = false

@@ -36,9 +36,13 @@ const MAP_SIZE = 80
 const ROOM_MIN_SIZE = 4
 const ROOM_MAX_SIZE = 10
 const ROOM_COUNT = 12
+const CHEST_ROOM_CHANCE = 0.25
+const MIMIC_CHANCE = 0.2
 var rooms: Array = []
+var spawned_chests: Array[Node] = []
 
 var rng = RandomNumberGenerator.new()
+var chest_scene = preload("res://scenes/Chest/Chest.tscn")
 
 class Room:
 	var rect: Rect2i
@@ -59,6 +63,8 @@ func generate_dungeon():
 	sand_layer.clear()
 	wall_layer.clear()
 	sandy_wall_layer.clear()
+	rooms.clear()
+	clear_spawned_chests()
 
 	for i in range(ROOM_COUNT):
 		var w = rng.randi_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE)
@@ -86,6 +92,7 @@ func generate_dungeon():
 		rooms.append(new_room)
 
 	build_walls_around_sand()
+	spawn_chests_in_rooms()
 
 
 func build_walls_around_sand():
@@ -139,3 +146,25 @@ func carve_v_corridor(y1: int, y2: int, x: int):
 func set_random_sand_cell(cell: Vector2i):
 	var sand_tile = SAND_TILES[rng.randi_range(0, SAND_TILES.size() - 1)]
 	sand_layer.set_cell(cell, SOURCE_ID, sand_tile)
+
+
+func clear_spawned_chests():
+	for chest in spawned_chests:
+		if is_instance_valid(chest):
+			chest.queue_free()
+	spawned_chests.clear()
+
+
+func spawn_chests_in_rooms():
+	for room in rooms:
+		if rng.randf() > CHEST_ROOM_CHANCE:
+			continue
+
+		var chest = chest_scene.instantiate()
+		if chest.has_method("set_is_mimic"):
+			chest.set_is_mimic(rng.randf() < MIMIC_CHANCE)
+
+		var chest_cell = room.center()
+		chest.global_position = sand_layer.to_global(sand_layer.map_to_local(chest_cell))
+		add_child(chest)
+		spawned_chests.append(chest)
