@@ -4,6 +4,7 @@ extends Node2D
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
 @onready var wall_layer: TileMapLayer = $WallTileMapLayer
 @onready var sandy_wall_layer: TileMapLayer = $SandyWallTileMapLayer 
+@onready var escape_label: Label = $EscapeLabel
 
 const SOURCE_ID = 0
 const SAND_TILES: Array[Vector2i] = [
@@ -42,6 +43,10 @@ const CORRIDOR_NARROW_CHANCE = 0.2
 var rooms: Array = []
 var spawned_chests: Array[Node] = []
 
+var is_escape_mode = false
+var escape_timer = 0.0
+const ESCAPE_TIME_LIMIT = 60.0
+
 var rng = RandomNumberGenerator.new()
 var chest_scene = preload("res://scenes/Chest/Chest.tscn")
 
@@ -58,6 +63,14 @@ class Room:
 func _ready():
 	rng.randomize()
 	generate_dungeon()
+
+
+func _process(delta):
+	if is_escape_mode:
+		escape_timer += delta
+		update_escape_ui()
+		if escape_timer >= ESCAPE_TIME_LIMIT:
+			game_over()
 
 
 func generate_dungeon():
@@ -192,3 +205,20 @@ func spawn_chests_in_rooms():
 		chest.global_position = sand_layer.to_global(sand_layer.map_to_local(chest_cell))
 		add_child(chest)
 		spawned_chests.append(chest)
+
+func start_escape():
+	is_escape_mode = true
+	escape_timer = 0.0
+	escape_label.visible = true
+	print("ESCAPE MODE STARTED! You have 60 seconds to escape!")
+
+
+func update_escape_ui():
+	var time_left = ESCAPE_TIME_LIMIT - escape_timer
+	escape_label.text = "ESCAPE! Time: %.1f" % time_left
+
+
+func game_over():
+	print("GAME OVER - Time ran out!")
+	escape_label.text = "GAME OVER!"
+	# TODO: Restart level or show menu
