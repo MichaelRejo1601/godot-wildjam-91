@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ctuxroow6jifl" path="res://scenes/Player/PlayerController.gd" id="1_ky53y"]
 [ext_resource type="Texture2D" uid="uid://bhaxckxpq20j1" path="res://assets/characters/raider.png" id="2_ky53y"]
+[ext_resource type="Script" uid="uid://bn2dwkojkqh5a" path="res://scenes/Player/lantern_flicker.gd" id="3_lantern"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
@@ -85,6 +86,16 @@ animations = [{
 "speed": 10.0
 }]
 
+[sub_resource type="Gradient" id="Gradient_ky53y"]
+offsets = PackedFloat32Array(0, 0.40758294, 0.9620853)
+colors = PackedColorArray(1, 1, 1, 1, 0.9458128, 0.9458128, 0.9458128, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bvqhm"]
+gradient = SubResource("Gradient_ky53y")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
 [node name="Player" type="Node2D" unique_id=201667921]
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1711886938]
@@ -95,8 +106,15 @@ zoom = Vector2(4, 4)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1224855715]
 shape = SubResource("CircleShape2D_ky53y")
-disabled = false
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=1761767343]
 sprite_frames = SubResource("SpriteFrames_tl8lu")
 animation = &"WalkRight"
+
+[node name="Lantern" type="PointLight2D" parent="CharacterBody2D" unique_id=217175965]
+color = Color(0.81844807, 0.5835988, 0.35678735, 1)
+energy = 1.57
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_bvqhm")
+texture_scale = 4.9
+script = ExtResource("3_lantern")

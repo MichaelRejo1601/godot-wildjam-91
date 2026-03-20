@@ -644,3 +644,6 @@ tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAI
 tile_set = SubResource("TileSet_3hanc")
 
 [node name="Chest" parent="." unique_id=388380434 instance=ExtResource("5_yd457")]
+
+[node name="Darkness" type="CanvasModulate" parent="." unique_id=1359106607]
+color = Color(0, 0, 0, 1)
