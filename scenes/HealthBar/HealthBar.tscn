@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://d2drp8aj85r15"]
+
+[ext_resource type="Script" uid="uid://c0w23bvjpcrc6" path="res://scenes/HealthBar/health_bar.gd" id="1_hbar"]
+
+[node name="HealthBar" type="Node2D" unique_id=1626104838]
+scale = Vector2(3.5, 3.5)
+script = ExtResource("1_hbar")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1750682671]
+centered = false

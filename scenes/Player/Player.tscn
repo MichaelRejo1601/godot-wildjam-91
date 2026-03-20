@@ -116,5 +116,5 @@ color = Color(0.81844807, 0.5835988, 0.35678735, 1)
 energy = 1.57
 shadow_enabled = true
 texture = SubResource("GradientTexture2D_bvqhm")
-texture_scale = 4.9
+texture_scale = 3.48
 script = ExtResource("3_lantern")
