@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://c6b18n256xb3k"]
+
+[ext_resource type="Texture2D" uid="uid://c3woofhei3soo" path="res://assets/particles/blood.png" id="1_sql31"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vo3jb"]
+atlas = ExtResource("1_sql31")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xgrro"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vo3jb")
+}],
+"loop": true,
+"name": &"Blood",
+"speed": 5.0
+}]
+
+[node name="Blood" type="Node2D" unique_id=1471745816]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=511988881]
+sprite_frames = SubResource("SpriteFrames_xgrro")
+animation = &"Blood"

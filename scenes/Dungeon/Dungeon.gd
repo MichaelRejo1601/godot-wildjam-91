@@ -37,7 +37,8 @@ const ROOM_MIN_SIZE = 4
 const ROOM_MAX_SIZE = 10
 const ROOM_COUNT = 12
 const CHEST_ROOM_CHANCE = 0.25
-const MIMIC_CHANCE = 0.2
+const MIMIC_CHANCE = 0.5
+const CORRIDOR_NARROW_CHANCE = 0.2
 var rooms: Array = []
 var spawned_chests: Array[Node] = []
 
@@ -124,23 +125,46 @@ func carve_room(room: Room):
 func connect_rooms(a: Room, b: Room):
 	var start = a.center()
 	var end = b.center()
+	var corridor_width = 1 if rng.randf() < CORRIDOR_NARROW_CHANCE else 2
 
 	if rng.randf() < 0.5:
-		carve_h_corridor(start.x, end.x, start.y)
-		carve_v_corridor(start.y, end.y, end.x)
+		carve_h_corridor(start.x, end.x, start.y, corridor_width)
+		carve_v_corridor(start.y, end.y, end.x, corridor_width)
 	else:
-		carve_v_corridor(start.y, end.y, start.x)
-		carve_h_corridor(start.x, end.x, end.y)
+		carve_v_corridor(start.y, end.y, start.x, corridor_width)
+		carve_h_corridor(start.x, end.x, end.y, corridor_width)
 
 
-func carve_h_corridor(x1: int, x2: int, y: int):
+
+func carve_h_corridor(x1: int, x2: int, y: int, width: int):
+	var y_offsets = get_corridor_offsets(width)
 	for x in range(min(x1, x2), max(x1, x2) + 1):
-		set_random_sand_cell(Vector2i(x, y))
+		for y_offset in y_offsets:
+			set_random_sand_cell(Vector2i(x, y + y_offset))
 
 
-func carve_v_corridor(y1: int, y2: int, x: int):
+
+func carve_v_corridor(y1: int, y2: int, x: int, width: int):
+	var x_offsets = get_corridor_offsets(width)
 	for y in range(min(y1, y2), max(y1, y2) + 1):
-		set_random_sand_cell(Vector2i(x, y))
+		for x_offset in x_offsets:
+			set_random_sand_cell(Vector2i(x + x_offset, y))
+
+
+func get_corridor_offsets(width: int) -> Array[int]:
+	if width <= 1:
+		return [0]
+
+	if width == 2:
+		if rng.randf() < 0.5:
+			return [0, 1]
+		return [-1, 0]
+
+	var offsets: Array[int] = []
+	var half := int(floor(width / 2.0))
+	for i in range(-half, half + 1):
+		offsets.append(i)
+	return offsets
 
 
 func set_random_sand_cell(cell: Vector2i):

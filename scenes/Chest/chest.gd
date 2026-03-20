@@ -5,13 +5,18 @@ extends Node2D
 @onready var prompt_label: Label = $PromptLabel
 
 @export var is_mimic := false
+const INTERACT_ICON = "E"
+var blood_scene = preload("res://scenes/Blood/Blood.tscn")
+var rng = RandomNumberGenerator.new()
 
 var player_near := false
 var waiting_for_reach_in := false
 var looted := false
+var current_player: Node2D = null
 
 
 func _ready() -> void:
+	rng.randomize()
 	animated_sprite.play("Closed")
 	interact_area.body_entered.connect(_on_interact_area_body_entered)
 	interact_area.body_exited.connect(_on_interact_area_body_exited)
@@ -43,6 +48,7 @@ func _handle_interact() -> void:
 		return
 
 	if is_mimic:
+		spawn_blood_on_ground()
 		animated_sprite.play("Closed")
 		waiting_for_reach_in = false
 		_update_prompt()
@@ -54,22 +60,35 @@ func _handle_interact() -> void:
 
 
 func _on_interact_area_body_entered(body: Node) -> void:
-	if _is_player_body(body):
+	var player = _resolve_player_node(body)
+	if player != null:
+		current_player = player
 		player_near = true
 		_update_prompt()
 
 
 func _on_interact_area_body_exited(body: Node) -> void:
-	if _is_player_body(body):
+	var player = _resolve_player_node(body)
+	if player != null:
+		if current_player == player:
+			current_player = null
 		player_near = false
 		_update_prompt()
 
 
 func _is_player_body(body: Node) -> bool:
-	if body.is_in_group("player"):
-		return true
+	return _resolve_player_node(body) != null
+
+
+func _resolve_player_node(body: Node) -> Node2D:
+	if body is Node2D and body.is_in_group("player"):
+		return body as Node2D
+
 	var parent = body.get_parent()
-	return parent != null and parent.is_in_group("player")
+	if parent is Node2D and parent.is_in_group("player"):
+		return parent as Node2D
+
+	return null
 
 
 func _update_prompt() -> void:
@@ -79,6 +98,29 @@ func _update_prompt() -> void:
 
 	prompt_label.visible = true
 	if waiting_for_reach_in:
-		prompt_label.text = "Press E to reach in"
+		prompt_label.text = "%s Reach in" % INTERACT_ICON
 	else:
-		prompt_label.text = "Press E to open"
+		prompt_label.text = "%s Open" % INTERACT_ICON
+
+
+func spawn_blood_on_ground() -> void:
+	var blood = blood_scene.instantiate()
+	var blood_position = global_position + Vector2(0, 4)
+	if current_player != null and is_instance_valid(current_player):
+		blood_position = (current_player.global_position + global_position) * 0.5 + Vector2(0, 4)
+
+	# Add slight jitter so repeated splats don't stack perfectly.
+	blood_position += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-2.0, 2.0))
+
+	var parent = get_parent()
+	if parent != null:
+		parent.add_child(blood)
+		if blood is Node2D:
+			(blood as Node2D).global_position = blood_position
+			(blood as Node2D).z_index = z_index
+		# Keep blood above tile layers but behind chest.
+		parent.move_child(blood, get_index())
+	else:
+		get_tree().current_scene.add_child(blood)
+		if blood is Node2D:
+			(blood as Node2D).global_position = blood_position
