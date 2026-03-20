@@ -36,6 +36,7 @@ enum SentinalStates {
 }
 
 var currState: SentinalStates = SentinalStates.IDLE
+var _pending_attack: bool = false
 
 func _ready() -> void:
 	rng.randomize()
@@ -70,10 +71,7 @@ func _physics_process(delta: float) -> void:
 			_foundPlaye = true
 			visible = true
 			$CollisionShape2D.disabled = false
-	if _has_line_of_sight() and currState != SentinalStates.KNOCKBACK:
-		currState = SentinalStates.ATTACK
-	elif currState != SentinalStates.KNOCKBACK: 
-		currState = SentinalStates.IDLE
+	# state updates moved into _checkAnimation to centralize animation and state logic
 	# print(currState)
 	_checkAnimation(delta)
 
@@ -105,6 +103,13 @@ func _attack() -> void:
 	_attackTime = 0.0
 
 func _checkAnimation(delta: float):
+	# update pending attack based on line-of-sight unless we're in knockback
+
+	if _has_line_of_sight():
+		_pending_attack = true
+	else:
+		_pending_attack = false
+		currState = SentinalStates.IDLE
 	match currState:
 		SentinalStates.IDLE:
 			velocity = Vector2.ZERO
@@ -148,3 +153,21 @@ func _attack_player() -> void:
 	
 
 	_attackTime = 0.0
+
+func _on_animated_sprite_2d_animation_finished() -> void:
+	print(animated_sprite.animation_changed)
+	if animated_sprite.animation == "Idle":
+		if _pending_attack:
+			currState = SentinalStates.ATTACK
+	elif animated_sprite.animation == "Roll":
+		currState = SentinalStates.IDLE
+	pass # Replace with function body.
+
+
+func _on_animated_sprite_2d_frame_changed() -> void:
+	if animated_sprite.animation == "Idle" and animated_sprite.frame == 7:
+		if _pending_attack:
+			currState = SentinalStates.ATTACK
+	elif animated_sprite.animation == "Roll" and animated_sprite.frame == 8:
+		currState = SentinalStates.IDLE
+	pass # Replace with function body.

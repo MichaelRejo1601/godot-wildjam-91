@@ -98,8 +98,7 @@ func _physics_process(delta: float) -> void:
 
 func _pick_direction() -> void:
 	var angle = rng.randf_range(0.0, TAU)
-	if player and is_instance_valid(player):
-		_dir = (player.global_position - global_position).normalized()
+	_dir = Vector2(cos(angle), sin(angle)).normalized()
 
 
 func _attack() -> void:
