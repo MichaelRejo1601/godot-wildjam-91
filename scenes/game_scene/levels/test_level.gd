@@ -4,6 +4,7 @@ func _ready() -> void:
 	print("Test level loaded: spawning test objects")
 	# Defer so Dungeon._ready() has generated the tilemap before we query sand cells.
 	call_deferred("_place_player_on_sand")
+	call_deferred("_setup_health_bar")
 
 
 func _place_player_on_sand() -> void:
@@ -25,3 +26,16 @@ func _place_player_on_sand() -> void:
 
 	var spawn_cell: Vector2i = sand_cells.pick_random()
 	player.global_position = sand_layer.to_global(sand_layer.map_to_local(spawn_cell))
+
+
+func _setup_health_bar() -> void:
+	var player = get_node_or_null("Player/CharacterBody2D")
+	var health_bar = get_node_or_null("UI/HealthBar")
+	if player == null or health_bar == null:
+		push_warning("TestLevel: Missing Player or HealthBar; cannot wire health UI.")
+		return
+
+	if player.has_signal("health_changed"):
+		player.health_changed.connect(Callable(health_bar, "update_health"))
+
+	health_bar.update_health(player.current_health)

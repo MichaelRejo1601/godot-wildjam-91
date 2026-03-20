@@ -1,9 +1,11 @@
 extends CharacterBody2D
 
+signal health_changed(hp: int)
 
 const SPEED = 70.0
 const SPRINT_MULTIPLIER = 1.75
 const SPRINT_ANIM_SPEED_SCALE = 1.35
+const MAX_HP = 14
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 enum PlayerStates {
@@ -15,10 +17,12 @@ enum PlayerStates {
 
 var current_state: PlayerStates = PlayerStates.IDLE_RIGHT
 var facing_left := false
+var current_health := MAX_HP
 
 
 func _ready() -> void:
 	add_to_group("player")
+	health_changed.emit(current_health)
 	update_animation(Vector2.ZERO, false)
 
 
@@ -60,3 +64,11 @@ func update_animation(input_direction: Vector2, is_sprinting: bool) -> void:
 
 	if animated_sprite.animation != animation_name or not animated_sprite.is_playing():
 		animated_sprite.play(animation_name)
+
+
+func take_damage(amount: int = 1) -> void:
+	if amount <= 0:
+		return
+
+	current_health = max(current_health - amount, 0)
+	health_changed.emit(current_health)

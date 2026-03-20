@@ -49,6 +49,8 @@ func _handle_interact() -> void:
 
 	if is_mimic:
 		spawn_blood_on_ground()
+		if current_player != null and is_instance_valid(current_player) and current_player.has_method("take_damage"):
+			current_player.take_damage(1)
 		animated_sprite.play("Closed")
 		waiting_for_reach_in = false
 		_update_prompt()
