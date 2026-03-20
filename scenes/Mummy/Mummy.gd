@@ -20,8 +20,6 @@ var dungeon_tilemaps: Array = []
 @export var player: Node2D
 @export var knockback: float = 90
 
-var _foundPlaye: bool = false
-
 
 var _dir: Vector2 = Vector2.RIGHT
 var _time: float = 0.0
@@ -37,6 +35,7 @@ enum SentinalStates {
 
 var currState: SentinalStates = SentinalStates.IDLE
 var _pending_attack: bool = false
+signal about_to_be_deleted(dead_enemy: CharacterBody2D)
 
 func _ready() -> void:
 	rng.randomize()
@@ -63,12 +62,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if player and is_instance_valid(player):
 		var dist := global_position.distance_to(player.global_position)
-		if dist > active_range and not _foundPlaye:
+		if dist > active_range:
 			visible = false
 			$CollisionShape2D.disabled = true
 			return
 		else:
-			_foundPlaye = true
 			visible = true
 			$CollisionShape2D.disabled = false
 	# state updates moved into _checkAnimation to centralize animation and state logic
@@ -83,13 +81,13 @@ func _physics_process(delta: float) -> void:
 		var collision = get_slide_collision(i)
 		# print("Collided with: ", collision.get_collider().name)
 		var collider := collision.get_collider()
-		if collider != null and collider.has_method("take_damage") and _has_line_of_sight():
+		if collider != null and collider.name == "Player" and collider.has_method("take_damage") and _has_line_of_sight():
 			if damage > 0:
 				collider.take_damage(damage)
 			# currState = SentinalStates.IDLE
-			var to_player := player.global_position - global_position
-			var dir := to_player.normalized()
 			currState = SentinalStates.KNOCKBACK
+				# notify listeners that this enemy is about to be deleted
+			about_to_be_deleted.emit(self)
 			queue_free()
 			# velocity = -dir * 40
 
@@ -121,7 +119,7 @@ func _checkAnimation(delta: float):
 				animated_sprite.play("Roll")
 		SentinalStates.KNOCKBACK:
 			if _has_line_of_sight():
-				print("adding Knockback")
+				# print("adding Knockback")
 				var to_player := player.global_position - global_position
 				var dir := to_player.normalized()
 				currState = SentinalStates.KNOCKBACK

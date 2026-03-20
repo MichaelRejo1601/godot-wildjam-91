@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://pmfgagrfen1l"]
+
+[ext_resource type="Texture2D" uid="uid://de012dm1c68na" path="res://scenes/Mummy/MummyDeath.png" id="1_58atd"]
+
+[node name="MummyDeath" type="Sprite2D" unique_id=622431680]
+texture = ExtResource("1_58atd")

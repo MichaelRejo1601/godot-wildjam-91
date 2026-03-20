@@ -3,6 +3,7 @@ extends Node2D
 
 const sentinal = preload("res://scenes/Sentinel/Sentinel.tscn")
 const mummy = preload("res://scenes/Mummy/Mummy.tscn")
+const mummyDeath = preload("res://scenes/Mummy/MummyDeath.tscn")
 @export var dungeon_path: NodePath
 
 
@@ -10,6 +11,8 @@ const mummy = preload("res://scenes/Mummy/Mummy.tscn")
 @export var maxSentinalsPerRoom: int = 1
 @export var minMummysPerRoom: int = 1
 @export var maxMummysPerRoom: int = 1
+
+var seen = {}
 
 var rooms: Array = []
 
@@ -45,6 +48,22 @@ func _load_rooms() -> void:
 				add_child(mum)
 				if player_node:
 					mum.player = player_node
+				mum.about_to_be_deleted.connect(_on_mummy_about_to_be_deleted)
 			# print("Loading Room: ", r.center())
 	else:
 		push_warning("EnemyManager: dungeon_path is not set or node not found.")
+
+
+func _on_mummy_about_to_be_deleted(dead_enemy: CharacterBody2D) -> void:
+	# pos = dead_enemy.position
+	print("Mummy Death")
+	if not seen.has(Vector2i(dead_enemy.global_position) % 16):
+		seen[Vector2i(dead_enemy.global_position) % 16] = true
+	
+		var mumDeath = mummyDeath.instantiate()
+		mumDeath.global_position = dead_enemy.global_position
+		
+		add_child(mumDeath)
+	else:
+		return
+	pass # Replace with function body.
