@@ -3,6 +3,7 @@ extends Area2D
 @export var speed: float = 20.0
 @export var lifetime: float = 6000.0
 @export var knockback: float = 200.0
+@export var damage: int = 1
 
 # Set before add_child
 var direction: Vector2 = Vector2.ZERO
@@ -24,5 +25,7 @@ func _on_body_entered(body: Node) -> void:
 	if body == source:
 		return
 	if body == target and body is CharacterBody2D:
+		if body.has_method("take_damage"):
+			body.take_damage(damage)
 		body.velocity += direction * knockback
 	queue_free()

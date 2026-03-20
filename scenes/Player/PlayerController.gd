@@ -7,6 +7,10 @@ const SPRINT_MULTIPLIER = 1.75
 const SPRINT_ANIM_SPEED_SCALE = 1.35
 const MAX_HP = 14
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var camera: Camera2D = $Camera2D
+
+const HIT_SHAKE_ANGLE_DEG = 5.0
+const HIT_SHAKE_STEP_TIME = 0.025
 
 enum PlayerStates {
 	WALK_LEFT,
@@ -18,10 +22,14 @@ enum PlayerStates {
 var current_state: PlayerStates = PlayerStates.IDLE_RIGHT
 var facing_left := false
 var current_health := MAX_HP
+var hit_shake_tween: Tween
 
 
 func _ready() -> void:
 	add_to_group("player")
+	if camera != null:
+		# Camera2D ignores parent/node rotation by default.
+		camera.ignore_rotation = false
 	health_changed.emit(current_health)
 	update_animation(Vector2.ZERO, false)
 
@@ -70,5 +78,23 @@ func take_damage(amount: int = 1) -> void:
 	if amount <= 0:
 		return
 
+	var previous_health := current_health
 	current_health = max(current_health - amount, 0)
+	if current_health < previous_health:
+		play_hit_camera_shake()
 	health_changed.emit(current_health)
+
+
+func play_hit_camera_shake() -> void:
+	if camera == null:
+		return
+
+	if hit_shake_tween != null and hit_shake_tween.is_valid():
+		hit_shake_tween.kill()
+
+	camera.rotation_degrees = 0.0
+	hit_shake_tween = create_tween()
+	hit_shake_tween.tween_property(camera, "rotation_degrees", HIT_SHAKE_ANGLE_DEG, HIT_SHAKE_STEP_TIME)
+	hit_shake_tween.tween_property(camera, "rotation_degrees", -HIT_SHAKE_ANGLE_DEG, HIT_SHAKE_STEP_TIME)
+	hit_shake_tween.tween_property(camera, "rotation_degrees", HIT_SHAKE_ANGLE_DEG * 0.6, HIT_SHAKE_STEP_TIME)
+	hit_shake_tween.tween_property(camera, "rotation_degrees", 0.0, HIT_SHAKE_STEP_TIME)
