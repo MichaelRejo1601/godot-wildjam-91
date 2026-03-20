@@ -8,7 +8,7 @@ radius = 4.0
 
 [node name="LaserBeam" type="Area2D" unique_id=437381794]
 script = ExtResource("1_lb")
-speed = 60.0
+speed = 120.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2143080864]
 texture = ExtResource("2_lb")

@@ -74,7 +74,10 @@ func _physics_process(delta: float) -> void:
 	if _time >= change_interval:
 		_time = 0.0
 		_pick_direction()
-	velocity = _dir * speed
+	if currState != SentinalStates.ATTACK:
+		velocity = _dir * speed
+	else:
+		velocity = Vector2.ZERO
 	if velocity.length() > 0:
 		currState = SentinalStates.WALK
 	else:

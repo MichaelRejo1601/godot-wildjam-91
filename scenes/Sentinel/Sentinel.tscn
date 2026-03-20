@@ -6,10 +6,6 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mirmf"]
 size = Vector2(16, 16)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_vrnjk"]
-atlas = ExtResource("2_rkfqh")
-region = Rect2(0, 32, 16, 16)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_nhb6s"]
 atlas = ExtResource("2_rkfqh")
 region = Rect2(16, 32, 16, 16)
@@ -85,9 +81,6 @@ region = Rect2(48, 16, 16, 16)
 [sub_resource type="SpriteFrames" id="SpriteFrames_sqyp4"]
 animations = [{
 "frames": [{
-"duration": 20.0,
-"texture": SubResource("AtlasTexture_vrnjk")
-}, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_nhb6s")
 }, {
@@ -120,6 +113,33 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_cxtg7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cxtg7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6sge1")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_6sge1")
@@ -177,7 +197,7 @@ shape = SubResource("RectangleShape2D_mirmf")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1580413160]
 sprite_frames = SubResource("SpriteFrames_sqyp4")
 animation = &"Attack"
-frame_progress = 0.24010848
+frame_progress = 0.6573276
 
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
 [connection signal="frame_changed" from="AnimatedSprite2D" to="." method="_on_AnimatedSprite2D_frame_changed"]
