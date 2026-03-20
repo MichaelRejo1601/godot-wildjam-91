@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://crqb4rvqngaey" path="res://scenes/Dungeon/Dungeon.tscn" id="3_ga2yx"]
 [ext_resource type="PackedScene" uid="uid://d2drp8aj85r15" path="res://scenes/HealthBar/HealthBar.tscn" id="4_hbar"]
 [ext_resource type="PackedScene" uid="uid://bm7xae2jca5bm" path="res://scenes/Mummy/Mummy.tscn" id="6_o4mvr"]
+[ext_resource type="PackedScene" path="res://scenes/MadnessBar/MadnessBar.tscn" id="10_mbar"]
 
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
@@ -38,3 +39,5 @@ attack_interval_min = 0.01
 position = Vector2(24, 624)
 
 [connection signal="about_to_be_deleted" from="Mummy" to="EnemyManager" method="_on_mummy_about_to_be_deleted"]
+[node name="MadnessBar" parent="UI" instance=ExtResource("10_mbar")]
+position = Vector2(24, 670)

@@ -37,7 +37,6 @@ const ROOM_MIN_SIZE = 4
 const ROOM_MAX_SIZE = 10
 const ROOM_COUNT = 12
 const CHEST_ROOM_CHANCE = 0.25
-const MIMIC_CHANCE = 1
 const CORRIDOR_NARROW_CHANCE = 0.2
 var rooms: Array = []
 var spawned_chests: Array[Node] = []
@@ -185,8 +184,6 @@ func spawn_chests_in_rooms():
 			continue
 
 		var chest = chest_scene.instantiate()
-		if chest.has_method("set_is_mimic"):
-			chest.set_is_mimic(rng.randf() < MIMIC_CHANCE)
 
 		var chest_cell = room.center()
 		chest.global_position = sand_layer.to_global(sand_layer.map_to_local(chest_cell))

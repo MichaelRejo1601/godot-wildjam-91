@@ -5,6 +5,7 @@ extends Node2D
 @onready var prompt_label: Label = $PromptLabel
 
 @export var is_mimic := false
+@export var max_madness_for_mimic := 14.0
 const INTERACT_ICON = "E"
 var blood_scene = preload("res://scenes/Blood/Blood.tscn")
 var rng = RandomNumberGenerator.new()
@@ -14,6 +15,7 @@ var waiting_for_reach_in := false
 var looted := false
 var current_player: Node2D = null
 var mimic_sequence_active := false
+var mimic_roll_resolved := false
 
 const MIMIC_BITE_DURATION = 2
 const CAMERA_ZOOM_IN_TIME = 0.35
@@ -54,6 +56,13 @@ func _handle_interact() -> void:
 		_update_prompt()
 		return
 
+	if not mimic_roll_resolved:
+		var mimic_chance := _get_mimic_chance_from_madness()
+		var roll := rng.randf()
+		is_mimic = roll < mimic_chance
+		print("Mimic roll: chance=", mimic_chance, " roll=", roll, " result=", is_mimic)
+		mimic_roll_resolved = true
+
 	if is_mimic:
 		start_mimic_trap_sequence()
 		return
@@ -61,6 +70,23 @@ func _handle_interact() -> void:
 	animated_sprite.play("Open")
 	looted = true
 	_update_prompt()
+
+
+func _get_mimic_chance_from_madness() -> float:
+	if current_player == null or not is_instance_valid(current_player):
+		return 0.0
+
+	if current_player.has_method("get_madness_ratio"):
+		return clamp(current_player.get_madness_ratio(), 0.0, 1.0)
+
+	if max_madness_for_mimic <= 0.0:
+		return 0.0
+
+	var current_madness = current_player.get("current_madness")
+	if typeof(current_madness) == TYPE_INT or typeof(current_madness) == TYPE_FLOAT:
+		return clamp(float(current_madness) / max_madness_for_mimic, 0.0, 1.0)
+
+	return 0.0
 
 
 func _on_interact_area_body_entered(body: Node) -> void:
