@@ -1,7 +1,6 @@
 name: Deploy Web Build
 
 on:
-  push:
   workflow_dispatch:
 
 env:
