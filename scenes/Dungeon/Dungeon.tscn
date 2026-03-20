@@ -2,8 +2,9 @@
 
 [ext_resource type="Script" uid="uid://jomsy8hktc5r" path="res://scenes/Dungeon/Dungeon.gd" id="1_cdvrn"]
 [ext_resource type="Texture2D" uid="uid://b2jwttsq0ycdj" path="res://assets/walls/dungeon_walls_autotile_set_demo.png" id="2_32pf2"]
-[ext_resource type="Texture2D" uid="uid://bqfpxlla5nn6i" path="res://assets/floor/sand.png" id="2_cdvrn"]
+[ext_resource type="Texture2D" uid="uid://bjm0smbhlm051" path="res://assets/floor/sand.png" id="2_cdvrn"]
 [ext_resource type="Texture2D" uid="uid://b0f178wbm4deu" path="res://assets/walls/walls_together_fixed_fixed.png" id="2_yd457"]
+[ext_resource type="PackedScene" uid="uid://sd176wxmispb" path="res://scenes/Chest/Chest.tscn" id="5_yd457"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_602r5"]
 texture = ExtResource("2_yd457")
@@ -641,3 +642,5 @@ tile_set = SubResource("TileSet_88q8k")
 [node name="SandTileMapLayer" type="TileMapLayer" parent="." unique_id=987997035]
 tile_map_data = PackedByteArray("AAC3/u3zAAABAAIAAAC3/u7zAAAAAAAAAAC5/u7zAAABAAIAAADA/u7zAAABAAEAAADC/u/zAAACAAEAAADB/vDzAAAAAAAAAADA/vDzAAABAAIAAADC/uvzAAABAAEAAADC/uzzAAAAAAAAAADB/uzzAAACAAAAAADA/uzzAAAAAAAAAAC//uzzAAAAAAEAAAC//uvzAAABAAIAAADA/uvzAAABAAEAAADB/uvzAAABAAEAAADD/uvzAAABAAIAAADD/uzzAAACAAAAAADD/u3zAAAAAAEAAADD/u7zAAABAAEAAADD/u/zAAAAAAAAAADD/vDzAAABAAEAAADD/vHzAAAAAAAAAADC/vHzAAAAAAEAAADB/vHzAAABAAEAAADA/vHzAAABAAEAAAC//vHzAAABAAIAAAC//vDzAAACAAAAAADB/u/zAAABAAIAAADC/vDzAAABAAIAAADC/u7zAAAAAAAAAADC/u3zAAAAAAAAAADB/u3zAAAAAAAAAADA/u3zAAACAAEAAAC//u3zAAABAAEAAAC//u7zAAAAAAAAAAC//u/zAAABAAIAAADA/u/zAAAAAAEAAADB/u7zAAACAAAAAAC+/u7zAAACAAAAAAC9/u7zAAAAAAAAAAC8/u7zAAABAAEAAAC7/u7zAAAAAAAAAAC6/u7zAAABAAEAAAC5/u3zAAABAAEAAAC4/u3zAAABAAEAAAC4/u7zAAAAAAAAAAC4/u/zAAABAAEAAAC5/u/zAAAAAAAAAAC3/u/zAAACAAAAAAA=")
 tile_set = SubResource("TileSet_3hanc")
+
+[node name="Chest" parent="." unique_id=388380434 instance=ExtResource("5_yd457")]

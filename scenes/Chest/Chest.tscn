@@ -1,0 +1,158 @@
+[gd_scene format=3 uid="uid://sd176wxmispb"]
+
+[ext_resource type="Texture2D" uid="uid://bxtgbbtsdrp25" path="res://assets/chest/treasure_chest.png" id="1_ynxvs"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ewlxh"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hmwuc"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5xm1b"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ejsq6"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dbka4"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4h4g4"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hpdqa"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gcywl"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(0, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kl71k"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(16, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_as6cb"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(32, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e4qv3"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(48, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m77y3"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(0, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ujwlx"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(16, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_17g1l"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(32, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4uw13"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(48, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2di5"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(0, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rdjty"]
+atlas = ExtResource("1_ynxvs")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_11upt"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ewlxh")
+}],
+"loop": true,
+"name": &"Closed",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hmwuc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5xm1b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ejsq6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dbka4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4h4g4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hmwuc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hmwuc")
+}],
+"loop": true,
+"name": &"Looted",
+"speed": 7.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hpdqa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gcywl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kl71k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_as6cb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e4qv3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m77y3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ujwlx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_17g1l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4uw13")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e2di5")
+}],
+"loop": true,
+"name": &"Mimic",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rdjty")
+}],
+"loop": true,
+"name": &"Open",
+"speed": 5.0
+}]
+
+[node name="Chest" type="Node2D" unique_id=388380434]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=40840076]
+sprite_frames = SubResource("SpriteFrames_11upt")
+animation = &"Open"
+frame_progress = 0.35338068
