@@ -35,7 +35,11 @@ enum SentinalStates {
 
 var currState: SentinalStates = SentinalStates.IDLE
 
+# Health system for whip attacks
+var health: int = 3
+
 func _ready() -> void:
+	add_to_group("enemies")
 	rng.randomize()
 	_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
 	# print("Curr Attack Interval: ", _attackInterval)
@@ -162,3 +166,9 @@ func _on_animated_sprite_2d_animation_finished() -> void:
 		currState = SentinalStates.IDLE
 		_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
 		_attackTime = 0.0
+
+
+func take_damage(amount: int = 1) -> void:
+	health -= amount
+	if health <= 0:
+		queue_free()

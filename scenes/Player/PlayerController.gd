@@ -26,6 +26,12 @@ var current_health := MAX_HP
 var hit_shake_tween: Tween
 var controls_locked := false
 
+# Whip attack system
+var is_attacking := false
+var attack_cooldown := 0.0
+const ATTACK_COOLDOWN_TIME = 1.0
+@onready var whip_hitbox: Area2D = $WhipHitbox
+
 
 func _ready() -> void:
 	add_to_group("player")
@@ -35,6 +41,10 @@ func _ready() -> void:
 	update_lantern_from_health()
 	health_changed.emit(current_health)
 	update_animation(Vector2.ZERO, false)
+	
+	# Connect whip hitbox signal
+	if whip_hitbox != null:
+		whip_hitbox.body_entered.connect(_on_whip_hitbox_body_entered)
 
 
 func _physics_process(_delta: float) -> void:
@@ -52,6 +62,14 @@ func _physics_process(_delta: float) -> void:
 
 	update_animation(input_direction, is_sprinting)
 	move_and_slide()
+	
+	# Handle attack cooldown
+	if attack_cooldown > 0:
+		attack_cooldown -= _delta
+	
+	# Handle whip attack input
+	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0 and not is_attacking:
+		perform_whip_attack()
 
 
 func update_animation(input_direction: Vector2, is_sprinting: bool) -> void:
@@ -108,18 +126,3 @@ func play_hit_camera_shake() -> void:
 	hit_shake_tween.tween_property(camera, "rotation_degrees", -HIT_SHAKE_ANGLE_DEG, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", HIT_SHAKE_ANGLE_DEG * 0.6, HIT_SHAKE_STEP_TIME)
 	hit_shake_tween.tween_property(camera, "rotation_degrees", 0.0, HIT_SHAKE_STEP_TIME)
-
-
-func set_controls_locked(value: bool) -> void:
-	controls_locked = value
-	if controls_locked:
-		velocity = Vector2.ZERO
-
-
-func update_lantern_from_health() -> void:
-	if lantern == null:
-		return
-
-	if lantern.has_method("set_health_ratio"):
-		var ratio = float(current_health) / float(MAX_HP)
-		lantern.set_health_ratio(ratio)

@@ -7,6 +7,10 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_whip"]
+radius = 8.0
+height = 20.0
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_bvqhm"]
 atlas = ExtResource("2_ky53y")
 region = Rect2(0, 0, 16, 16)
@@ -118,3 +122,9 @@ shadow_enabled = true
 texture = SubResource("GradientTexture2D_bvqhm")
 texture_scale = 3.48
 script = ExtResource("3_lantern")
+
+[node name="WhipHitbox" type="Area2D" parent="Player" unique_id=591234567]
+monitoring = false
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Player/WhipHitbox" unique_id=691234567]
+shape = SubResource("CapsuleShape2D_whip")
