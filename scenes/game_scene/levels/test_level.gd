@@ -6,6 +6,7 @@ func _ready() -> void:
 	call_deferred("_place_player_on_sand")
 	call_deferred("_setup_health_bar")
 	call_deferred("_setup_madness_bar")
+	call_deferred("_setup_coin_bar")
 
 
 func _place_player_on_sand() -> void:
@@ -59,3 +60,20 @@ func _setup_madness_bar() -> void:
 		player.madness_changed.connect(Callable(madness_bar, "update_madness"))
 
 	madness_bar.update_madness(player.current_madness)
+
+
+func _setup_coin_bar() -> void:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		# Backward compatibility if the character body keeps its older node name.
+		player = get_node_or_null("Player/CharacterBody2D")
+	var coin_bar = get_node_or_null("UI/CoinBar")
+	if player == null or coin_bar == null:
+		push_warning("TestLevel: Missing Player or CoinBar; cannot wire coin UI.")
+		return
+
+	if player.has_signal("coins_changed"):
+		player.coins_changed.connect(Callable(coin_bar, "update_coins"))
+
+	if coin_bar.has_method("update_coins"):
+		coin_bar.update_coins(player.current_coins)

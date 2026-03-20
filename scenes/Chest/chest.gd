@@ -69,6 +69,8 @@ func _handle_interact() -> void:
 
 	animated_sprite.play("Open")
 	looted = true
+	if current_player != null and is_instance_valid(current_player) and current_player.has_method("add_coins"):
+		current_player.add_coins(1)
 	_update_prompt()
 
 

@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 signal health_changed(hp: int)
 signal madness_changed(madness: int)
+signal coins_changed(coins: int)
 
 const SPEED = 70.0
 const SPRINT_MULTIPLIER = 1.75
@@ -27,6 +28,7 @@ var current_state: PlayerStates = PlayerStates.IDLE_RIGHT
 var facing_left := false
 var current_health := MAX_HP
 var current_madness := 0
+var current_coins := 0
 var madness_elapsed := 0.0
 var hit_shake_tween: Tween
 var controls_locked := false
@@ -46,6 +48,7 @@ func _ready() -> void:
 	update_lantern_from_health()
 	health_changed.emit(current_health)
 	madness_changed.emit(current_madness)
+	coins_changed.emit(current_coins)
 	update_animation(Vector2.ZERO, false)
 	
 	# Connect whip hitbox signal
@@ -133,6 +136,14 @@ func take_damage(amount: int = 1) -> void:
 		play_hit_camera_shake()
 	update_lantern_from_health()
 	health_changed.emit(current_health)
+
+
+func add_coins(amount: int = 1) -> void:
+	if amount <= 0:
+		return
+
+	current_coins += amount
+	coins_changed.emit(current_coins)
 
 
 func play_hit_camera_shake() -> void:

@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://blqwsrvg56wi2"]
+
+[ext_resource type="Script" uid="uid://bvw2w0eifdr60" path="res://scenes/CoinBar/coin_bar.gd" id="1_cbgd"]
+[ext_resource type="Texture2D" uid="uid://bftnkx8liuxrj" path="res://assets/bars_and_menus/coin.png" id="1_fkpsd"]
+[ext_resource type="Texture2D" uid="uid://bj66v0fsxxvkq" path="res://assets/bars_and_menus/coin_bar.png" id="1_rcfpn"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rcfpn"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hwrt8"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ueat7"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_27mrr"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6d8yb"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(0, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4iivv"]
+atlas = ExtResource("1_fkpsd")
+region = Rect2(16, 32, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_t8rj8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hwrt8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ueat7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_27mrr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6d8yb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4iivv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rcfpn")
+}],
+"loop": true,
+"name": &"Shine",
+"speed": 9.0
+}]
+
+[sub_resource type="SystemFont" id="SystemFont_rcfpn"]
+font_names = PackedStringArray("Cursive")
+font_italic = true
+
+[node name="Coin Bar" type="Node2D" unique_id=1800346268]
+scale = Vector2(10, 10)
+script = ExtResource("1_cbgd")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1599522982]
+texture = ExtResource("1_rcfpn")
+
+[node name="CoinSprite" type="AnimatedSprite2D" parent="." unique_id=1899945887]
+position = Vector2(3.7500002, 0)
+scale = Vector2(0.90625, 0.84375)
+sprite_frames = SubResource("SpriteFrames_t8rj8")
+animation = &"Shine"
+frame_progress = 0.49117056
+
+[node name="Label" type="Label" parent="." unique_id=208428302]
+self_modulate = Color(0.9607843, 0.79607844, 0, 1)
+offset_left = -6.0
+offset_top = -3.0
+offset_right = 22.0
+offset_bottom = 20.0
+scale = Vector2(0.25, 0.25)
+theme_type_variation = &"GraphNodeTitleLabel"
+theme_override_fonts/font = SubResource("SystemFont_rcfpn")
+text = "0"
