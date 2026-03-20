@@ -16,6 +16,7 @@ var dungeon_tilemaps: Array = []
 @export var attack_knockback: float = 200.0
 @export var active_range: float = 200.0
 @export var attackSpeed: float = 40
+@export var damage: int = 1
 @export var player: Node2D
 @export var knockback: float = 90
 
@@ -83,7 +84,10 @@ func _physics_process(delta: float) -> void:
 	for i in get_slide_collision_count():
 		var collision = get_slide_collision(i)
 		# print("Collided with: ", collision.get_collider().name)
-		if collision.get_collider().name == "Player" and _has_line_of_sight():
+		var collider := collision.get_collider()
+		if collider != null and collider.has_method("take_damage") and _has_line_of_sight():
+			if damage > 0:
+				collider.take_damage(damage)
 			# currState = SentinalStates.IDLE
 			var to_player := player.global_position - global_position
 			var dir := to_player.normalized()
