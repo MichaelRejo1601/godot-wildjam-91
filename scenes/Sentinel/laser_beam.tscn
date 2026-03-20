@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bwe342dl216sn"]
+
+[ext_resource type="Texture2D" uid="uid://dfkl3pye2w245" path="res://scenes/Sentinel/LaserBeam.png" id="1_m3du3"]
+[ext_resource type="Script" uid="uid://cht7oh4r6obp0" path="res://scenes/Sentinel/LaserBeam.gd" id="2_8a2v1"]
+
+[node name="LaserBeam" type="Sprite2D" unique_id=283649223]
+visible = false
+texture = ExtResource("1_m3du3")
+script = ExtResource("2_8a2v1")

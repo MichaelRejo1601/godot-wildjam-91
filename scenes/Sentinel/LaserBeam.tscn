@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dlaserbeam12x"]
+
+[ext_resource type="Script" uid="uid://cht7oh4r6obp0" path="res://scenes/Sentinel/LaserBeam.gd" id="1_lb"]
+[ext_resource type="Texture2D" uid="uid://dfkl3pye2w245" path="res://scenes/Sentinel/LaserBeam.png" id="2_lb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_lb"]
+radius = 4.0
+
+[node name="LaserBeam" type="Area2D" unique_id=437381794]
+script = ExtResource("1_lb")
+speed = 60.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2143080864]
+texture = ExtResource("2_lb")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1914238782]
+shape = SubResource("CircleShape2D_lb")

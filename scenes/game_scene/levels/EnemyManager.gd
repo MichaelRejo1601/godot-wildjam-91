@@ -5,8 +5,8 @@ const sentinal = preload("res://scenes/Sentinel/Sentinel.tscn")
 @export var dungeon_path: NodePath
 
 
-@export var minSentinalsPerRoom: int = 2
-@export var maxSentinalsPerRoom: int = 4
+@export var minSentinalsPerRoom: int = 1
+@export var maxSentinalsPerRoom: int = 1
 
 var rooms: Array = []
 
@@ -23,12 +23,15 @@ func _load_rooms() -> void:
 		rooms = dungeon.rooms
 		for r in rooms:
 			var sentinalsInThisRoom = randi_range(minSentinalsPerRoom, maxSentinalsPerRoom)
-			print("ThisMansentinal", sentinalsInThisRoom)
+			# print("ThisMansentinal", sentinalsInThisRoom)
 			for s in range(sentinalsInThisRoom):
 				var sent = sentinal.instantiate()
 				var sand_layer = dungeon.get_node("SandTileMapLayer") as TileMapLayer
 				sent.global_position = sand_layer.to_global(sand_layer.map_to_local(r.center()))
 				add_child(sent)
-			print("Loading Room: ", r.center())
+				var player_node = get_tree().get_first_node_in_group("player")
+				if player_node:
+					sent.player = player_node
+			# print("Loading Room: ", r.center())
 	else:
 		push_warning("EnemyManager: dungeon_path is not set or node not found.")
