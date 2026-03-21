@@ -20,9 +20,11 @@ credits_packed_scene = ExtResource("4_m0ubd")
 texture = ExtResource("5_m0ubd")
 
 [node name="TitleLabel" parent="MenuContainer/TitleMargin/TitleContainer" parent_id_path=PackedInt32Array(556427956) index="0" unique_id=359406872]
+self_modulate = Color(0.18837145, 0.18837145, 0.18837145, 1)
 text = "Death Below"
 
 [node name="SubTitleLabel" parent="MenuContainer/SubTitleMargin/SubTitleContainer" parent_id_path=PackedInt32Array(930520368) index="0" unique_id=1037003361]
+self_modulate = Color(0.27752772, 0.27752772, 0.27752772, 1)
 text = "Godot WildJam #91"
 
 [node name="ContinueGameButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer" parent_id_path=PackedInt32Array(2017477786) index="1" unique_id=2077321160]
