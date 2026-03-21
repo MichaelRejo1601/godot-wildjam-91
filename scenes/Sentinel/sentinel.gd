@@ -14,7 +14,7 @@ var dungeon_tilemaps: Array = []
 
 @export var attack_range: float = 24.0
 @export var attack_knockback: float = 200.0
-@export var active_range: float = 200.0
+@export var active_range: float = 400.0
 @export var player: Node2D
 @export var burst_shot_count: int = 3
 @export var burst_shot_delay: float = 0.20

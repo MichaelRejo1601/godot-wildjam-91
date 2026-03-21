@@ -189,7 +189,7 @@ animations = [{
 [node name="Snetinel" type="CharacterBody2D" unique_id=470938059]
 script = ExtResource("1_n6pey")
 speed = 60.0
-active_range = 100.0
+active_range = 200.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=794085690]
 shape = SubResource("RectangleShape2D_mirmf")

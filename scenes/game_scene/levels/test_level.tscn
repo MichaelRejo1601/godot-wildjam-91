@@ -22,7 +22,7 @@ visible = false
 position = Vector2(140, 0)
 attack_interval_min = 1.0
 attack_interval_max = 2.0
-active_range = 200.0
+active_range = 400.0
 player = NodePath("../Player")
 
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_5xsjt")]
