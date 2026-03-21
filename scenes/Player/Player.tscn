@@ -220,7 +220,7 @@ sprite_frames = SubResource("SpriteFrames_mmokv")
 animation = &"Shovel"
 
 [node name="Handle" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=7784633]
-position = Vector2(0, 6)
+position = Vector2(0, 4.3478265)
 
 [node name="Head" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=144676139]
 position = Vector2(0, -5)

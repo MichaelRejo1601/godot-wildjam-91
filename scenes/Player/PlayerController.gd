@@ -99,12 +99,16 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @export var shovel_forward_offset: float = 3.0
 @export var shovel_handle_world_offset: Vector2 = Vector2.ZERO
 @export var shovel_hand_down_offset: float = 2.0
-@export var shovel_aim_up_offset_degrees: float = 45.0
+@export var shovel_aim_up_offset_degrees: float = 22.5
 @export var shovel_attack_cooldown: float = 0.30
 @export var shovel_damage: int = 1
 @export var shovel_knockback_force: float = 160.0
-@export var shovel_sweep_degrees: float = 50.0
-@export var shovel_sweep_duration: float = 0.20
+@export var shovel_sweep_degrees: float = 70.0
+@export var shovel_windup_angle_degrees: float = 55.0
+@export var shovel_strike_angle_degrees: float = 75.0
+@export var shovel_windup_duration: float = 0.16
+@export var shovel_strike_duration: float = 0.05
+@export var shovel_recovery_duration: float = 0.08
 @export var shovel_visual_sweep_multiplier: float = 4.5
 @export var shovel_hitbox_distance: float = 13.0
 @export var shovel_overlay_z_index: int = 120
@@ -403,36 +407,54 @@ func perform_shovel_sweep_attack() -> void:
 
 	var base_angle: float = attack_direction.angle()
 	var side_sign: float = -1.0 if attack_direction.x < 0.0 else 1.0
-	var start_offset: float = deg_to_rad(-45.0) * side_sign
-	var end_offset: float = deg_to_rad(45.0) * side_sign
+	var start_offset: float = deg_to_rad(-shovel_windup_angle_degrees) * side_sign
+	var end_offset: float = deg_to_rad(shovel_strike_angle_degrees) * side_sign
+	var windup_duration: float = maxf(shovel_windup_duration, 0.01)
+	var strike_duration: float = maxf(shovel_strike_duration, 0.01)
+	var recovery_duration: float = maxf(shovel_recovery_duration, 0.01)
 	var start_angle: float = base_angle + start_offset
 	var end_angle: float = base_angle + end_offset
 
 	whip_hitbox.position = attack_direction * shovel_hitbox_distance
-	whip_hitbox.rotation = start_angle
-	whip_hitbox.monitoring = true
+	whip_hitbox.rotation = base_angle
+	whip_hitbox.monitoring = false
 
 	if _shovel_attack_tween != null and _shovel_attack_tween.is_valid():
 		_shovel_attack_tween.kill()
 	_shovel_attack_tween = create_tween()
 	_shovel_attack_tween.tween_method(
 		Callable(self, "_set_shovel_visual_sweep_offset"),
+		0.0,
+		start_offset,
+		windup_duration
+	)
+	_shovel_attack_tween.tween_method(
+		Callable(self, "_set_shovel_visual_sweep_offset"),
 		start_offset,
 		end_offset,
-		shovel_sweep_duration
+		strike_duration
 	)
 	_shovel_attack_tween.tween_method(
 		Callable(self, "_set_shovel_visual_sweep_offset"),
 		end_offset,
 		0.0,
-		shovel_sweep_duration * 0.6
+		recovery_duration
 	)
 
-	var sweep_tween: Tween = create_tween()
-	sweep_tween.tween_property(whip_hitbox, "rotation", end_angle, shovel_sweep_duration)
-	await sweep_tween.finished
+	var windup_tween: Tween = create_tween()
+	windup_tween.tween_property(whip_hitbox, "rotation", start_angle, windup_duration)
+	await windup_tween.finished
+
+	whip_hitbox.monitoring = true
+	var strike_tween: Tween = create_tween()
+	strike_tween.tween_property(whip_hitbox, "rotation", end_angle, strike_duration)
+	await strike_tween.finished
 
 	whip_hitbox.monitoring = false
+	var recovery_tween: Tween = create_tween()
+	recovery_tween.tween_property(whip_hitbox, "rotation", base_angle, recovery_duration)
+	await recovery_tween.finished
+
 	is_attacking = false
 	_set_shovel_visual_sweep_offset(0.0)
 
