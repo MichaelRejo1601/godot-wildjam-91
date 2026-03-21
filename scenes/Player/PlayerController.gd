@@ -109,7 +109,6 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @export var shovel_windup_duration: float = 0.16
 @export var shovel_strike_duration: float = 0.05
 @export var shovel_recovery_duration: float = 0.08
-@export var shovel_visual_sweep_multiplier: float = 4.5
 @export var shovel_hitbox_distance: float = 13.0
 @export var shovel_overlay_z_index: int = 120
 @export var damage_vignette_color: Color = Color(0.30, 0.08, 0.08, 1.0)
@@ -128,8 +127,10 @@ var damage_vignette_flash_alpha: float = 0.0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _current_attack_direction: Vector2 = Vector2.RIGHT
 var _shovel_hit_targets: Array[Node2D] = []
-var _shovel_visual_sweep_offset: float = 0.0
-var _shovel_attack_tween: Tween
+var _attack_virtual_mouse_active: bool = false
+var _attack_virtual_mouse_position: Vector2 = Vector2.ZERO
+var _attack_virtual_mouse_radius: float = 0.0
+var _attack_virtual_mouse_tween: Tween
 
 
 func _ready() -> void:
@@ -419,25 +420,31 @@ func perform_shovel_sweep_attack() -> void:
 	whip_hitbox.rotation = base_angle
 	whip_hitbox.monitoring = false
 
-	if _shovel_attack_tween != null and _shovel_attack_tween.is_valid():
-		_shovel_attack_tween.kill()
-	_shovel_attack_tween = create_tween()
-	_shovel_attack_tween.tween_method(
-		Callable(self, "_set_shovel_visual_sweep_offset"),
-		0.0,
-		start_offset,
+	if _attack_virtual_mouse_tween != null and _attack_virtual_mouse_tween.is_valid():
+		_attack_virtual_mouse_tween.kill()
+	_attack_virtual_mouse_radius = maxf(
+		(get_global_mouse_position() - global_position).length(),
+		hand_orbit_radius + shovel_forward_offset + 8.0
+	)
+	_attack_virtual_mouse_active = true
+	_set_attack_virtual_mouse_angle(base_angle)
+	_attack_virtual_mouse_tween = create_tween()
+	_attack_virtual_mouse_tween.tween_method(
+		Callable(self, "_set_attack_virtual_mouse_angle"),
+		base_angle,
+		start_angle,
 		windup_duration
 	)
-	_shovel_attack_tween.tween_method(
-		Callable(self, "_set_shovel_visual_sweep_offset"),
-		start_offset,
-		end_offset,
+	_attack_virtual_mouse_tween.tween_method(
+		Callable(self, "_set_attack_virtual_mouse_angle"),
+		start_angle,
+		end_angle,
 		strike_duration
 	)
-	_shovel_attack_tween.tween_method(
-		Callable(self, "_set_shovel_visual_sweep_offset"),
-		end_offset,
-		0.0,
+	_attack_virtual_mouse_tween.tween_method(
+		Callable(self, "_set_attack_virtual_mouse_angle"),
+		end_angle,
+		base_angle,
 		recovery_duration
 	)
 
@@ -456,11 +463,17 @@ func perform_shovel_sweep_attack() -> void:
 	await recovery_tween.finished
 
 	is_attacking = false
-	_set_shovel_visual_sweep_offset(0.0)
+	_attack_virtual_mouse_active = false
 
 
-func _set_shovel_visual_sweep_offset(value: float) -> void:
-	_shovel_visual_sweep_offset = value
+func _set_attack_virtual_mouse_angle(value: float) -> void:
+	_attack_virtual_mouse_position = global_position + (Vector2.RIGHT.rotated(value) * _attack_virtual_mouse_radius)
+
+
+func _get_effective_mouse_position() -> Vector2:
+	if _attack_virtual_mouse_active and current_held_item == HeldItem.SHOVEL:
+		return _attack_virtual_mouse_position
+	return get_global_mouse_position()
 
 
 func fire_gun() -> void:
@@ -521,13 +534,15 @@ func _update_hand_positions() -> void:
 	if moving_hands == null or left_hand == null or right_hand == null:
 		return
 
-	var to_mouse: Vector2 = get_global_mouse_position() - global_position
+	var effective_mouse_position: Vector2 = _get_effective_mouse_position()
+	var to_mouse: Vector2 = effective_mouse_position - global_position
 	var aim_direction: Vector2 = Vector2.RIGHT
 	if to_mouse.length_squared() > 0.0:
 		aim_direction = to_mouse.normalized()
 
-	var perpendicular: Vector2 = Vector2(-aim_direction.y, aim_direction.x)
-	moving_hands.position = aim_direction * hand_orbit_radius
+	var orbit_direction: Vector2 = aim_direction
+	var perpendicular: Vector2 = Vector2(-orbit_direction.y, orbit_direction.x)
+	moving_hands.position = orbit_direction * hand_orbit_radius
 
 	# Swap which hand is in front when aiming left.
 	if aim_direction.x < 0.0:
@@ -589,22 +604,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_Q:
 			if current_held_item == HeldItem.GUN and attack_cooldown <= 0.0 and not is_attacking:
 				fire_gun()
-				return
-		if event.keycode == KEY_1:
-			current_held_item = HeldItem.GUN
-			update_lantern_enabled_state()
-			update_lantern_held_state()
-		elif event.keycode == KEY_2:
-			if current_held_item == HeldItem.LAMP:
-				_toggle_lamp_power()
-				return
-			current_held_item = HeldItem.LAMP
-			update_lantern_enabled_state()
-			update_lantern_held_state()
-		elif event.keycode == KEY_3:
-			current_held_item = HeldItem.SHOVEL
-			update_lantern_enabled_state()
-			update_lantern_held_state()
 
 
 func _use_primary_item_action() -> void:
@@ -646,12 +645,13 @@ func _update_held_item_visuals() -> void:
 	if gun_item == null or lamp_item == null or shovel_item == null:
 		return
 
-	var to_mouse: Vector2 = get_global_mouse_position() - global_position
+	var effective_mouse_position: Vector2 = _get_effective_mouse_position()
+	var to_mouse: Vector2 = effective_mouse_position - global_position
 	var aim_direction: Vector2 = Vector2.RIGHT
 	if to_mouse.length_squared() > 0.0:
 		aim_direction = to_mouse.normalized()
 
-	var mouse_left_of_player: bool = get_global_mouse_position().x < global_position.x
+	var mouse_left_of_player: bool = effective_mouse_position.x < global_position.x
 	gun_item.flip_h = mouse_left_of_player
 	var aim_angle: float = aim_direction.angle()
 	# When horizontally flipped, subtract PI so the muzzle still faces the mouse.
@@ -659,7 +659,7 @@ func _update_held_item_visuals() -> void:
 	gun_item.position = aim_direction * gun_forward_offset
 	if shovel_item != null and shovel_handle != null and shovel_head != null and moving_hands != null:
 		var desired_handle_global: Vector2 = moving_hands.global_position + (aim_direction * shovel_forward_offset) + shovel_handle_world_offset
-		var desired_head_direction: Vector2 = get_global_mouse_position() - desired_handle_global
+		var desired_head_direction: Vector2 = effective_mouse_position - desired_handle_global
 		if desired_head_direction.length_squared() <= 0.0:
 			desired_head_direction = aim_direction
 		var shovel_up_offset_radians: float = deg_to_rad(shovel_aim_up_offset_degrees)
@@ -670,7 +670,7 @@ func _update_held_item_visuals() -> void:
 		if local_handle_to_head.length_squared() <= 0.0:
 			local_handle_to_head = Vector2.UP
 
-		var target_rotation: float = desired_head_direction.angle() - local_handle_to_head.angle() + _shovel_visual_sweep_offset
+		var target_rotation: float = desired_head_direction.angle() - local_handle_to_head.angle()
 		shovel_item.global_rotation = target_rotation
 		var current_handle_global: Vector2 = shovel_item.to_global(shovel_handle.position)
 		shovel_item.global_position += desired_handle_global - current_handle_global
