@@ -11,6 +11,33 @@ const MAX_HP = 14
 const MAX_MADNESS = 14
 const MADNESS_FILL_DURATION = 60.0
 const PlayerShotScene = preload("res://scenes/Player/player_bullet.tscn")
+const BloodScene = preload("res://scenes/Blood/Blood.tscn")
+const DAMAGE_VIGNETTE_SHADER_CODE := """
+shader_type canvas_item;
+
+uniform vec4 tint_color : source_color = vec4(0.30, 0.06, 0.06, 1.0);
+uniform float edge_thickness = 0.36;
+uniform float edge_softness = 0.20;
+uniform float roundness = 3.5;
+uniform float intensity = 0.0;
+
+void fragment() {
+	vec2 uv = UV * 2.0 - vec2(1.0);
+	float aspect = SCREEN_PIXEL_SIZE.y / max(SCREEN_PIXEL_SIZE.x, 0.000001);
+	uv.x *= aspect;
+
+	float p = max(roundness, 1.0);
+	vec2 a = abs(uv);
+	float dist = pow(pow(a.x, p) + pow(a.y, p), 1.0 / p);
+
+	float start = max(1.0 - edge_thickness, 0.0);
+	float soft = max(edge_softness, 0.0001);
+	float mask = smoothstep(start, start + soft, dist);
+	float alpha = clamp(mask * intensity, 0.0, 1.0);
+
+	COLOR = vec4(tint_color.rgb, tint_color.a * alpha);
+}
+"""
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var lantern: PointLight2D = $Lantern
@@ -65,10 +92,26 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @export var gun_damage: int = 1
 @export var gun_screen_shake_amount: float = 4.0
 @export var gun_screen_shake_duration: float = 0.08
+@export var damage_vignette_color: Color = Color(0.30, 0.08, 0.08, 1.0)
+@export var damage_vignette_edge_thickness: float = 0.42
+@export var damage_vignette_edge_softness: float = 0.22
+@export var damage_vignette_roundness: float = 3.6
+@export var damage_vignette_flash_peak_alpha: float = 0.32
+@export var damage_vignette_flash_in_time: float = 0.05
+@export var damage_vignette_flash_out_time: float = 0.22
+
+var damage_vignette_layer: CanvasLayer
+var damage_vignette_rect: ColorRect
+var damage_vignette_material: ShaderMaterial
+var damage_vignette_tween: Tween
+var damage_vignette_flash_alpha: float = 0.0
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	add_to_group("player")
+	rng.randomize()
+	_setup_damage_vignette()
 	if camera != null:
 		# Camera2D ignores parent/node rotation by default.
 		camera.ignore_rotation = false
@@ -113,12 +156,10 @@ func _physics_process(_delta: float) -> void:
 	if attack_cooldown > 0:
 		attack_cooldown -= _delta
 	
-	# Handle attack input for equipped item
+	# Attack action only drives gun firing. Lamp toggle is handled by left click/key input.
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0 and not is_attacking:
 		if current_held_item == HeldItem.GUN:
 			fire_gun()
-		else:
-			perform_whip_attack()
 
 
 func _update_madness(delta: float) -> void:
@@ -173,8 +214,92 @@ func take_damage(amount: int = 1) -> void:
 	current_health = max(current_health - amount, 0)
 	if current_health < previous_health:
 		play_hit_camera_shake()
+		_play_damage_vignette_flash()
+		_spawn_blood_on_damage()
+	_update_damage_vignette_intensity()
 	update_lantern_from_health()
 	health_changed.emit(current_health)
+
+
+func _spawn_blood_on_damage() -> void:
+	var blood := BloodScene.instantiate()
+	var blood_position: Vector2 = global_position + Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(2.0, 7.0))
+	_place_ground_decal(blood, blood_position)
+
+
+func _place_ground_decal(decal: Node2D, world_position: Vector2) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+
+	var parent: Node = scene.get_node_or_null("Dungeon")
+	if parent == null:
+		parent = get_parent() if get_parent() != null else scene
+
+	parent.add_child(decal)
+	decal.global_position = world_position
+	decal.z_index = 0
+
+	if parent.name == "Dungeon":
+		var sand_layer := parent.get_node_or_null("SandTileMapLayer")
+		var chest_node := parent.get_node_or_null("Chest")
+		var target_index: int = parent.get_child_count() - 1
+		if sand_layer != null:
+			target_index = sand_layer.get_index() + 1
+		if chest_node != null:
+			target_index = chest_node.get_index()
+		parent.move_child(decal, target_index)
+
+
+func _setup_damage_vignette() -> void:
+	damage_vignette_layer = CanvasLayer.new()
+	damage_vignette_layer.layer = 90
+	add_child(damage_vignette_layer)
+
+	damage_vignette_rect = ColorRect.new()
+	damage_vignette_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	damage_vignette_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	damage_vignette_rect.color = Color.WHITE
+
+	var shader := Shader.new()
+	shader.code = DAMAGE_VIGNETTE_SHADER_CODE
+	damage_vignette_material = ShaderMaterial.new()
+	damage_vignette_material.shader = shader
+	damage_vignette_material.set_shader_parameter("tint_color", damage_vignette_color)
+	damage_vignette_material.set_shader_parameter("edge_thickness", damage_vignette_edge_thickness)
+	damage_vignette_material.set_shader_parameter("edge_softness", damage_vignette_edge_softness)
+	damage_vignette_material.set_shader_parameter("roundness", damage_vignette_roundness)
+	damage_vignette_material.set_shader_parameter("intensity", 0.0)
+	damage_vignette_rect.material = damage_vignette_material
+
+	damage_vignette_layer.add_child(damage_vignette_rect)
+	_update_damage_vignette_intensity()
+
+
+func _play_damage_vignette_flash() -> void:
+	if damage_vignette_rect == null:
+		return
+
+	if damage_vignette_tween != null and damage_vignette_tween.is_valid():
+		damage_vignette_tween.kill()
+
+	var peak_alpha: float = clampf(damage_vignette_flash_peak_alpha, 0.0, 1.0)
+	_set_damage_vignette_flash_alpha(0.0)
+	damage_vignette_tween = create_tween()
+	damage_vignette_tween.tween_method(_set_damage_vignette_flash_alpha, 0.0, peak_alpha, maxf(damage_vignette_flash_in_time, 0.001))
+	damage_vignette_tween.tween_method(_set_damage_vignette_flash_alpha, peak_alpha, 0.0, maxf(damage_vignette_flash_out_time, 0.001))
+
+
+func _set_damage_vignette_flash_alpha(value: float) -> void:
+	damage_vignette_flash_alpha = clampf(value, 0.0, 1.0)
+	_update_damage_vignette_intensity()
+
+
+func _update_damage_vignette_intensity() -> void:
+	if damage_vignette_material == null:
+		return
+
+	damage_vignette_material.set_shader_parameter("intensity", damage_vignette_flash_alpha)
 
 
 func add_coins(amount: int = 1) -> void:
@@ -348,6 +473,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			if current_held_item == HeldItem.GUN and attack_cooldown <= 0.0 and not is_attacking:
 				fire_gun()
 				return
+			if current_held_item == HeldItem.LAMP:
+				_toggle_lamp_power()
+				return
+		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
+			_cycle_held_item()
+			return
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_Q:
@@ -360,10 +491,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			update_lantern_held_state()
 		elif event.keycode == KEY_2:
 			if current_held_item == HeldItem.LAMP:
-				lamp_is_on = not lamp_is_on
+				_toggle_lamp_power()
+				return
 			current_held_item = HeldItem.LAMP
 			update_lantern_enabled_state()
 			update_lantern_held_state()
+
+
+func _toggle_lamp_power() -> void:
+	lamp_is_on = not lamp_is_on
+	update_lantern_enabled_state()
+
+
+func _cycle_held_item() -> void:
+	match current_held_item:
+		HeldItem.GUN:
+			current_held_item = HeldItem.LAMP
+		HeldItem.LAMP:
+			current_held_item = HeldItem.GUN
+
+	update_lantern_enabled_state()
+	update_lantern_held_state()
 
 
 func get_madness_ratio() -> float:

@@ -14,7 +14,8 @@ config/name="Death Below"
 run/main_scene="res://scenes/opening/opening.tscn"
 config/features=PackedStringArray("4.6")
 run/max_fps=60
-config/icon="res://icon.png"
+boot_splash/image="uid://kwni1o7ymamm"
+config/icon="uid://b1d4jepeypg5u"
 
 [autoload]
 

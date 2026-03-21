@@ -182,16 +182,28 @@ func spawn_blood_on_ground() -> void:
 
 	# Add slight jitter so repeated splats don't stack perfectly.
 	blood_position += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-2.0, 2.0))
+	_place_ground_decal(blood, blood_position)
 
-	var parent = get_parent()
-	if parent != null:
-		parent.add_child(blood)
-		if blood is Node2D:
-			(blood as Node2D).global_position = blood_position
-			(blood as Node2D).z_index = z_index
-		# Keep blood above tile layers but behind chest.
-		parent.move_child(blood, get_index())
-	else:
-		get_tree().current_scene.add_child(blood)
-		if blood is Node2D:
-			(blood as Node2D).global_position = blood_position
+
+func _place_ground_decal(decal: Node2D, world_position: Vector2) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+
+	var parent: Node = scene.get_node_or_null("Dungeon")
+	if parent == null:
+		parent = get_parent() if get_parent() != null else scene
+
+	parent.add_child(decal)
+	decal.global_position = world_position
+	decal.z_index = 0
+
+	if parent.name == "Dungeon":
+		var sand_layer := parent.get_node_or_null("SandTileMapLayer")
+		var chest_node := parent.get_node_or_null("Chest")
+		var target_index: int = parent.get_child_count() - 1
+		if sand_layer != null:
+			target_index = sand_layer.get_index() + 1
+		if chest_node != null:
+			target_index = chest_node.get_index()
+		parent.move_child(decal, target_index)

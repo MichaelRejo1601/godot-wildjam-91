@@ -60,10 +60,35 @@ func _on_mummy_about_to_be_deleted(dead_enemy: CharacterBody2D) -> void:
 	if not seen.has(Vector2i(dead_enemy.global_position) % 16):
 		seen[Vector2i(dead_enemy.global_position) % 16] = true
 	
-		var mumDeath = mummyDeath.instantiate()
-		mumDeath.global_position = dead_enemy.global_position
-		
-		add_child(mumDeath)
+		var mumDeath := mummyDeath.instantiate() as Node2D
+		_place_ground_decal(mumDeath, dead_enemy.global_position)
 	else:
 		return
 	pass # Replace with function body.
+
+
+func _place_ground_decal(decal: Node2D, world_position: Vector2) -> void:
+	if decal == null:
+		return
+
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+
+	var parent: Node = scene.get_node_or_null("Dungeon")
+	if parent == null:
+		parent = self
+
+	parent.add_child(decal)
+	decal.global_position = world_position
+	decal.z_index = 0
+
+	if parent.name == "Dungeon":
+		var sand_layer := parent.get_node_or_null("SandTileMapLayer")
+		var chest_node := parent.get_node_or_null("Chest")
+		var target_index: int = parent.get_child_count() - 1
+		if sand_layer != null:
+			target_index = sand_layer.get_index() + 1
+		if chest_node != null:
+			target_index = chest_node.get_index()
+		parent.move_child(decal, target_index)
