@@ -6,4 +6,3 @@ const NO_NAME_STRING : String = "Death Below"
 
 ## If true, update the title when ready.
 @export var auto_update : bool = true
-

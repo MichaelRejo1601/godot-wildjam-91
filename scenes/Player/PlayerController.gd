@@ -16,12 +16,25 @@ const MADNESS_FILL_DURATION = 60.0
 @onready var moving_hands: Node2D = $MovingHands
 @onready var left_hand: Sprite2D = $MovingHands/LeftHand
 @onready var right_hand: Sprite2D = $MovingHands/RightHand
+@onready var items: Node2D = $MovingHands/Items
+@onready var lamp_item: AnimatedSprite2D = $MovingHands/Items/Lamp
+@onready var gun_item: AnimatedSprite2D = $MovingHands/Items/Gun
 
-@export var hand_orbit_radius: float = 12.0
+@export var hand_orbit_radius: float = 4.0
 @export var hand_spacing: float = 4.0
+@export var gun_forward_offset: float = 3.0
+@export var lamp_offset: Vector2 = Vector2(0, 2)
+@export var back_hand_z_index: int = 1
+@export var item_z_index: int = 2
+@export var front_hand_z_index: int = 3
 
 const HIT_SHAKE_ANGLE_DEG = 5.0
 const HIT_SHAKE_STEP_TIME = 0.025
+
+enum HeldItem {
+	GUN,
+	LAMP,
+}
 
 enum PlayerStates {
 	WALK_LEFT,
@@ -38,6 +51,8 @@ var current_coins := 0
 var madness_elapsed := 0.0
 var hit_shake_tween: Tween
 var controls_locked := false
+var current_held_item: HeldItem = HeldItem.GUN
+var lamp_is_on: bool = true
 
 # Whip attack system
 var is_attacking := false
@@ -60,11 +75,13 @@ func _ready() -> void:
 	# Connect whip hitbox signal
 	if whip_hitbox != null:
 		whip_hitbox.body_entered.connect(_on_whip_hitbox_body_entered)
+	_initialize_held_items()
 
 
 func _physics_process(_delta: float) -> void:
 	_update_madness(_delta)
 	_update_hand_positions()
+	_update_held_item_visuals()
 
 	if controls_locked:
 		velocity = Vector2.ZERO
@@ -211,6 +228,78 @@ func _update_hand_positions() -> void:
 	var perpendicular: Vector2 = Vector2(-aim_direction.y, aim_direction.x)
 	moving_hands.position = aim_direction * hand_orbit_radius
 
+	# Swap which hand is in front when aiming left.
+	if aim_direction.x < 0.0:
+		left_hand.z_index = front_hand_z_index
+		right_hand.z_index = back_hand_z_index
+	else:
+		left_hand.z_index = back_hand_z_index
+		right_hand.z_index = front_hand_z_index
+
 	var half_spacing: float = hand_spacing * 0.5
 	left_hand.position = -perpendicular * half_spacing
 	right_hand.position = perpendicular * half_spacing
+
+
+func _initialize_held_items() -> void:
+	if left_hand != null:
+		left_hand.z_index = back_hand_z_index
+		left_hand.visible = true
+	if items != null:
+		items.z_index = item_z_index
+	if right_hand != null:
+		right_hand.z_index = front_hand_z_index
+		right_hand.visible = true
+
+	if items != null:
+		# Force a clean centered origin for held-item placement.
+		items.position = Vector2.ZERO
+	if lamp_item != null:
+		lamp_item.position = lamp_offset
+	if gun_item != null:
+		gun_item.position = Vector2.ZERO
+		gun_item.rotation = 0.0
+	current_held_item = HeldItem.GUN
+	lamp_is_on = true
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_1:
+			current_held_item = HeldItem.GUN
+		elif event.keycode == KEY_2:
+			if current_held_item == HeldItem.LAMP:
+				lamp_is_on = not lamp_is_on
+			current_held_item = HeldItem.LAMP
+
+
+func _update_held_item_visuals() -> void:
+	if items != null:
+		items.position = Vector2.ZERO
+
+	if gun_item == null or lamp_item == null:
+		return
+
+	var to_mouse: Vector2 = get_global_mouse_position() - global_position
+	var aim_direction: Vector2 = Vector2.RIGHT
+	if to_mouse.length_squared() > 0.0:
+		aim_direction = to_mouse.normalized()
+
+	var mouse_left_of_player: bool = get_global_mouse_position().x < global_position.x
+	gun_item.flip_h = mouse_left_of_player
+	var aim_angle: float = aim_direction.angle()
+	# When horizontally flipped, subtract PI so the muzzle still faces the mouse.
+	gun_item.rotation = aim_angle - PI if mouse_left_of_player else aim_angle
+	gun_item.position = aim_direction * gun_forward_offset
+	lamp_item.position = lamp_offset
+
+	if current_held_item == HeldItem.GUN:
+		gun_item.visible = true
+		lamp_item.visible = false
+	elif current_held_item == HeldItem.LAMP:
+		gun_item.visible = false
+		lamp_item.visible = true
+		if lamp_is_on:
+			lamp_item.play("On")
+		else:
+			lamp_item.play("Off")
