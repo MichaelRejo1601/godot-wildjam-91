@@ -1,12 +1,35 @@
 extends Node2D
 
+const PLACEHOLDER_SCENES := {
+	"res://scenes/Sentinel/Sentinel.tscn": true,
+	"res://scenes/Mummy/Mummy.tscn": true,
+	"res://scenes/Chest/Chest.tscn": true,
+}
+
 func _ready() -> void:
+	_clear_editor_placed_entities()
 	print("Test level loaded: spawning test objects")
 	# Defer so Dungeon._ready() has generated the tilemap before we query sand cells.
 	call_deferred("_place_player_on_sand")
 	call_deferred("_setup_health_bar")
 	call_deferred("_setup_madness_bar")
 	call_deferred("_setup_coin_bar")
+
+
+func _clear_editor_placed_entities() -> void:
+	# Remove pre-placed actors/props from the level so runtime generation is authoritative.
+	_clear_placeholder_children(self)
+
+	var dungeon = get_node_or_null("Dungeon")
+	if dungeon != null:
+		_clear_placeholder_children(dungeon)
+
+
+func _clear_placeholder_children(parent_node: Node) -> void:
+	for child in parent_node.get_children():
+		# Runtime-instanced nodes have no owner; editor-placed placeholders do.
+		if child.owner != null and PLACEHOLDER_SCENES.has(child.scene_file_path):
+			child.queue_free()
 
 
 func _place_player_on_sand() -> void:

@@ -1,5 +1,7 @@
 extends Area2D
 
+const DEFAULT_SPEED: float = 20.0
+
 @export var speed: float = 20.0
 @export var lifetime: float = 6000.0
 @export var knockback: float = 200.0
@@ -9,6 +11,9 @@ extends Area2D
 var direction: Vector2 = Vector2.ZERO
 var target: Node2D = null
 @export var source: Node   # The sentinel that fired this — excluded from collision
+var shot_index: int = 1
+var tracked_target_position: Vector2 = Vector2.ZERO
+var predicted_shot: bool = false
 
 func _ready() -> void:
 	if direction != Vector2.ZERO:

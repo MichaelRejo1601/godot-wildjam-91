@@ -9,23 +9,28 @@ var dungeon_tilemaps: Array = []
 @export var change_interval: float = 2.0
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
-@export var attack_interval_min: float = 5.0
-@export var attack_interval_max: float = 6.0
+@export var attack_interval_min: float = 1.0
+@export var attack_interval_max: float = 2.0
 
 @export var attack_range: float = 24.0
 @export var attack_knockback: float = 200.0
 @export var active_range: float = 200.0
 @export var player: Node2D
+@export var burst_shot_count: int = 3
+@export var burst_shot_delay: float = 0.20
+@export var predictive_shot_lead_scale: float = 0.60
 
 var _foundPlaye: bool = false
 
 const LaserBeamScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
+const LASER_DEFAULT_SPEED = 20.0
 
 var _dir: Vector2 = Vector2.RIGHT
 var _time: float = 0.0
 var _attackTime: float = 0.0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _attackInterval: float 
+var _is_firing_burst: bool = false
 
 enum SentinalStates {
 	IDLE, 
@@ -143,21 +148,51 @@ func _has_line_of_sight() -> bool:
 
 
 func _attack_player() -> void:
+	if _is_firing_burst:
+		return
 	if not _has_line_of_sight():
 		return
-	var to_player := player.global_position - global_position
-	var dir := to_player.normalized()
+
+	_is_firing_burst = true
+	for shot_index in range(burst_shot_count):
+		if not player or not is_instance_valid(player):
+			break
+		if not _has_line_of_sight():
+			break
+		_fire_laser_shot(shot_index)
+		if shot_index < burst_shot_count - 1:
+			await get_tree().create_timer(burst_shot_delay).timeout
+	_is_firing_burst = false
+
+	_attackTime = 0.0
+
+
+func _fire_laser_shot(shot_index: int) -> void:
+	var aim_target := player.global_position
+
+	# The second beam tries to lead the target based on current velocity.
+	if shot_index == 1 and player is CharacterBody2D:
+		var player_body := player as CharacterBody2D
+		var estimated_laser_speed := LASER_DEFAULT_SPEED
+		if estimated_laser_speed <= 0.0:
+			estimated_laser_speed = 20.0
+		var distance_to_target := global_position.distance_to(player_body.global_position)
+		var travel_time := distance_to_target / estimated_laser_speed
+		var lead_time: float = clampf(travel_time * predictive_shot_lead_scale, 0.0, 0.75)
+		aim_target += player_body.velocity * lead_time
+
+	var dir := (aim_target - global_position).normalized()
 
 	var laser: Node2D = LaserBeamScene.instantiate()
 	laser.direction = dir
 	laser.target = player
 	laser.source = self
 	laser.knockback = attack_knockback
+	laser.shot_index = shot_index + 1
+	laser.tracked_target_position = aim_target
+	laser.predicted_shot = (shot_index == 1)
 	get_parent().add_child(laser)
 	laser.global_position = global_position
-	print("Sentinel fired laser toward ", player.global_position)
-
-	_attackTime = 0.0
 
 
 func _on_animated_sprite_2d_animation_finished() -> void:
