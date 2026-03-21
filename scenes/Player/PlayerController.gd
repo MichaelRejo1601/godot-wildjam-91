@@ -10,7 +10,7 @@ const SPRINT_ANIM_SPEED_SCALE = 1.35
 const MAX_HP = 14
 const MAX_MADNESS = 14
 const MADNESS_FILL_DURATION = 60.0
-const PlayerShotScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
+const PlayerShotScene = preload("res://scenes/Player/player_bullet.tscn")
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var lantern: PointLight2D = $Lantern
@@ -238,7 +238,6 @@ func fire_gun() -> void:
 	shot.damage = gun_damage
 	shot.speed = 240.0
 	shot.lifetime = 1.2
-	shot.hit_group = &"enemies"
 	shot.z_index = 5
 	get_parent().add_child(shot)
 	shot.global_position = gun_item.global_position + (bullet_direction * 4.0)
