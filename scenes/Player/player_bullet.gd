@@ -3,6 +3,7 @@ extends Area2D
 @export var speed: float = 220.0
 @export var lifetime: float = 1.5
 @export var damage: int = 1
+@export var knockback_force: float = 80.0
 
 var direction: Vector2 = Vector2.RIGHT
 var source: Node = null
@@ -27,7 +28,7 @@ func _on_body_entered(body: Node) -> void:
 		return
 
 	if body.is_in_group("enemies") and body.has_method("take_damage"):
-		body.take_damage(damage)
+		body.take_damage(damage, direction, knockback_force)
 		queue_free()
 		return
 

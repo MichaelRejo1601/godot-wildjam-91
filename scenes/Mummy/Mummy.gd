@@ -19,6 +19,9 @@ var dungeon_tilemaps: Array = []
 @export var damage: int = 1
 @export var player: Node2D
 @export var knockback: float = 90
+@export var max_health: int = 2
+@export var hit_knockback_force: float = 160.0
+@export var hit_stun_duration: float = 0.12
 
 
 var _dir: Vector2 = Vector2.RIGHT
@@ -36,10 +39,13 @@ enum SentinalStates {
 
 var currState: SentinalStates = SentinalStates.IDLE
 var _pending_attack: bool = false
+var current_health: int = 1
+var _hit_stun_timer: float = 0.0
 signal about_to_be_deleted(dead_enemy: CharacterBody2D)
 
 func _ready() -> void:
 	add_to_group("enemies")
+	current_health = max_health
 	rng.randomize()
 	_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
 	# print("Curr Attack Interval: ", _attackInterval)
@@ -73,6 +79,11 @@ func _physics_process(delta: float) -> void:
 			$CollisionShape2D.disabled = false
 	# state updates moved into _checkAnimation to centralize animation and state logic
 	# print(currState)
+	if _hit_stun_timer > 0.0:
+		_hit_stun_timer -= delta
+		move_and_slide()
+		return
+
 	_checkAnimation(delta)
 
 	move_and_slide()
@@ -178,3 +189,22 @@ func _on_animated_sprite_2d_frame_changed() -> void:
 	elif animated_sprite.animation == "Roll" and animated_sprite.frame == 8:
 		currState = SentinalStates.IDLE
 	pass # Replace with function body.
+
+
+func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_force: float = -1.0) -> void:
+	if amount <= 0:
+		return
+
+	current_health -= amount
+	if current_health <= 0:
+		about_to_be_deleted.emit(self)
+		queue_free()
+		return
+
+	if hit_direction.length_squared() > 0.0:
+		var applied_force: float = hit_knockback_force
+		if hit_force >= 0.0:
+			applied_force = hit_force
+		velocity = hit_direction.normalized() * applied_force
+		_hit_stun_timer = hit_stun_duration
+		currState = SentinalStates.IDLE

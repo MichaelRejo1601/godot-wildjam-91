@@ -19,6 +19,8 @@ var dungeon_tilemaps: Array = []
 @export var burst_shot_count: int = 3
 @export var burst_shot_delay: float = 0.20
 @export var predictive_shot_lead_scale: float = 0.60
+@export var hit_knockback_force: float = 140.0
+@export var hit_stun_duration: float = 0.10
 
 var _foundPlaye: bool = false
 
@@ -31,6 +33,7 @@ var _attackTime: float = 0.0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _attackInterval: float 
 var _is_firing_burst: bool = false
+var _hit_stun_timer: float = 0.0
 
 enum SentinalStates {
 	IDLE, 
@@ -77,6 +80,11 @@ func _physics_process(delta: float) -> void:
 			_foundPlaye = true
 			visible = true
 			$CollisionShape2D.disabled = false
+
+	if _hit_stun_timer > 0.0:
+		_hit_stun_timer -= delta
+		move_and_slide()
+		return
 
 	_attackTime += delta
 	_time += delta
@@ -202,7 +210,16 @@ func _on_animated_sprite_2d_animation_finished() -> void:
 		_attackTime = 0.0
 
 
-func take_damage(amount: int = 1) -> void:
+func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_force: float = -1.0) -> void:
 	health -= amount
 	if health <= 0:
 		queue_free()
+		return
+
+	if hit_direction.length_squared() > 0.0:
+		var applied_force: float = hit_knockback_force
+		if hit_force >= 0.0:
+			applied_force = hit_force
+		velocity = hit_direction.normalized() * applied_force
+		_hit_stun_timer = hit_stun_duration
+		currState = SentinalStates.IDLE
