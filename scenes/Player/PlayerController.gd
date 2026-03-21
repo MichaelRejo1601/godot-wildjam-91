@@ -10,6 +10,7 @@ const SPRINT_ANIM_SPEED_SCALE = 1.35
 const MAX_HP = 14
 const MAX_MADNESS = 14
 const MADNESS_FILL_DURATION = 60.0
+const PlayerShotScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var lantern: PointLight2D = $Lantern
@@ -50,6 +51,7 @@ var current_madness := 0
 var current_coins := 0
 var madness_elapsed := 0.0
 var hit_shake_tween: Tween
+var gun_shake_tween: Tween
 var controls_locked := false
 var current_held_item: HeldItem = HeldItem.GUN
 var lamp_is_on: bool = true
@@ -59,6 +61,10 @@ var is_attacking := false
 var attack_cooldown := 0.0
 const ATTACK_COOLDOWN_TIME = 1.0
 @onready var whip_hitbox: Area2D = $WhipHitbox
+@export var gun_fire_cooldown: float = 0.18
+@export var gun_damage: int = 1
+@export var gun_screen_shake_amount: float = 4.0
+@export var gun_screen_shake_duration: float = 0.08
 
 
 func _ready() -> void:
@@ -102,9 +108,12 @@ func _physics_process(_delta: float) -> void:
 	if attack_cooldown > 0:
 		attack_cooldown -= _delta
 	
-	# Handle whip attack input
+	# Handle attack input for equipped item
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0 and not is_attacking:
-		perform_whip_attack()
+		if current_held_item == HeldItem.GUN:
+			fire_gun()
+		else:
+			perform_whip_attack()
 
 
 func _update_madness(delta: float) -> void:
@@ -209,6 +218,45 @@ func perform_whip_attack() -> void:
 	if whip_hitbox != null:
 		whip_hitbox.monitoring = false
 	is_attacking = false
+
+
+func fire_gun() -> void:
+	attack_cooldown = gun_fire_cooldown
+	_play_gun_screen_shake()
+
+	if gun_item == null:
+		return
+
+	var to_mouse: Vector2 = get_global_mouse_position() - gun_item.global_position
+	if to_mouse.length_squared() <= 0.0:
+		return
+
+	var bullet_direction: Vector2 = to_mouse.normalized()
+	var shot := PlayerShotScene.instantiate()
+	shot.direction = bullet_direction
+	shot.source = self
+	shot.damage = gun_damage
+	shot.speed = 240.0
+	shot.lifetime = 1.2
+	shot.hit_group = &"enemies"
+	shot.z_index = 5
+	get_parent().add_child(shot)
+	shot.global_position = gun_item.global_position + (bullet_direction * 4.0)
+
+
+func _play_gun_screen_shake() -> void:
+	if camera == null:
+		return
+
+	if gun_shake_tween != null and gun_shake_tween.is_valid():
+		gun_shake_tween.kill()
+
+	camera.offset = Vector2.ZERO
+	gun_shake_tween = create_tween()
+	var shake_vec: Vector2 = Vector2(gun_screen_shake_amount, gun_screen_shake_amount)
+	gun_shake_tween.tween_property(camera, "offset", shake_vec, gun_screen_shake_duration * 0.25)
+	gun_shake_tween.tween_property(camera, "offset", -shake_vec, gun_screen_shake_duration * 0.25)
+	gun_shake_tween.tween_property(camera, "offset", Vector2.ZERO, gun_screen_shake_duration * 0.5)
 
 
 func _on_whip_hitbox_body_entered(body: Node2D) -> void:

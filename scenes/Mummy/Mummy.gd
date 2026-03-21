@@ -39,6 +39,7 @@ var _pending_attack: bool = false
 signal about_to_be_deleted(dead_enemy: CharacterBody2D)
 
 func _ready() -> void:
+	add_to_group("enemies")
 	rng.randomize()
 	_attackInterval = rng.randf_range(attack_interval_min, attack_interval_max)
 	# print("Curr Attack Interval: ", _attackInterval)
