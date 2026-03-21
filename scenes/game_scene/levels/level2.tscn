@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://df2isiawpy4u6"]
+
+[ext_resource type="Script" uid="uid://t0odlhkioepb" path="res://scenes/game_scene/levels/level2.gd" id="1_bdaix"]
+[ext_resource type="PackedScene" uid="uid://wpqx11cocj0p" path="res://scenes/DungeonLevel2/DungeonLevel2.tscn" id="1_c50jq"]
+[ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_kr6wy"]
+
+[node name="Level2" type="Node2D" unique_id=681203316]
+script = ExtResource("1_bdaix")
+
+[node name="DungeonLevel2" parent="." unique_id=1088688573 instance=ExtResource("1_c50jq")]
+
+[node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_kr6wy")]
+position = Vector2(452, -212)

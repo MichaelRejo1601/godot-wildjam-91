@@ -1,17 +1,18 @@
 [gd_scene format=3 uid="uid://cexitdoor0001"]
 
-[ext_resource type="Script" path="res://scenes/Dungeon/ExitDoor.gd" id="1_exitd"]
+[ext_resource type="Script" uid="uid://c8mc5i275gnxs" path="res://scenes/Dungeon/ExitDoor.gd" id="1_exitd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0"]
-size = Vector2(20, 28)
+size = Vector2(35, 28)
 
-[node name="ExitDoor" type="Area2D"]
+[node name="ExitDoor" type="Area2D" unique_id=2055807703]
 script = ExtResource("1_exitd")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=97899919]
+position = Vector2(-1.5, 0)
 shape = SubResource("RectangleShape2D_0")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=1596251331]
 offset_left = -24.0
 offset_top = -12.0
 offset_right = 24.0
