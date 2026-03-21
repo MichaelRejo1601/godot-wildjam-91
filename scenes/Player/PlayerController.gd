@@ -13,6 +13,12 @@ const MADNESS_FILL_DURATION = 60.0
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var lantern: PointLight2D = $Lantern
+@onready var moving_hands: Node2D = $MovingHands
+@onready var left_hand: Sprite2D = $MovingHands/LeftHand
+@onready var right_hand: Sprite2D = $MovingHands/RightHand
+
+@export var hand_orbit_radius: float = 12.0
+@export var hand_spacing: float = 4.0
 
 const HIT_SHAKE_ANGLE_DEG = 5.0
 const HIT_SHAKE_STEP_TIME = 0.025
@@ -58,6 +64,7 @@ func _ready() -> void:
 
 func _physics_process(_delta: float) -> void:
 	_update_madness(_delta)
+	_update_hand_positions()
 
 	if controls_locked:
 		velocity = Vector2.ZERO
@@ -190,3 +197,20 @@ func perform_whip_attack() -> void:
 func _on_whip_hitbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("enemies") and body.has_method("take_damage"):
 		body.take_damage(1)
+
+
+func _update_hand_positions() -> void:
+	if moving_hands == null or left_hand == null or right_hand == null:
+		return
+
+	var to_mouse: Vector2 = get_global_mouse_position() - global_position
+	var aim_direction: Vector2 = Vector2.RIGHT
+	if to_mouse.length_squared() > 0.0:
+		aim_direction = to_mouse.normalized()
+
+	var perpendicular: Vector2 = Vector2(-aim_direction.y, aim_direction.x)
+	moving_hands.position = aim_direction * hand_orbit_radius
+
+	var half_spacing: float = hand_spacing * 0.5
+	left_hand.position = -perpendicular * half_spacing
+	right_hand.position = perpendicular * half_spacing
