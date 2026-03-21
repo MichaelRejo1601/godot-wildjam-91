@@ -13,6 +13,7 @@
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
 gameOver = "uid://cj4h5iy7se5mq"
+nextLevel = "uid://df2isiawpy4u6"
 
 [node name="EnemyManager" type="Node2D" parent="." unique_id=1235624727]
 script = ExtResource("2_hu081")
