@@ -81,7 +81,7 @@ func _physics_process(delta: float) -> void:
 		var collision = get_slide_collision(i)
 		# print("Collided with: ", collision.get_collider().name)
 		var collider := collision.get_collider()
-		if collider != null and collider.name == "Player" and collider.has_method("take_damage") and _has_line_of_sight():
+		if currState == SentinalStates.ATTACK and collider != null and collider.name == "Player" and collider.has_method("take_damage") and _has_line_of_sight():
 			if damage > 0:
 				collider.take_damage(damage)
 			# currState = SentinalStates.IDLE

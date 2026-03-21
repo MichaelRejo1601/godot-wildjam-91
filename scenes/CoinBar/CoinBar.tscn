@@ -77,7 +77,7 @@ font_names = PackedStringArray("Cursive")
 font_italic = true
 
 [node name="Coin Bar" type="Node2D" unique_id=1800346268]
-scale = Vector2(10, 10)
+scale = Vector2(8, 8)
 script = ExtResource("1_cbgd")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1599522982]

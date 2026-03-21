@@ -44,4 +44,4 @@ position = Vector2(24, 564)
 position = Vector2(24, 610)
 
 [node name="CoinBar" parent="UI" instance=ExtResource("11_cbar")]
-position = Vector2(1200, 28)
+position = Vector2(1200, 44)
