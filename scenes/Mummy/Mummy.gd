@@ -22,6 +22,7 @@ var dungeon_tilemaps: Array = []
 
 
 var _dir: Vector2 = Vector2.RIGHT
+var _dash_direction: Vector2 = Vector2.RIGHT
 var _time: float = 0.0
 var _attackTime: float = 0.0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -97,8 +98,7 @@ func _pick_direction() -> void:
 
 
 func _attack() -> void:
-	currState = SentinalStates.ATTACK
-	_attackTime = 0.0
+	_start_attack_dash()
 
 func _checkAnimation(delta: float):
 	# update pending attack based on line-of-sight unless we're in knockback
@@ -142,21 +142,29 @@ func _has_line_of_sight() -> bool:
 
 
 func _attack_player() -> void:
-	if not _has_line_of_sight():
-		return
-	var to_player := player.global_position - global_position
-	var dir := to_player.normalized()
-	velocity = dir * attackSpeed
+	velocity = _dash_direction * attackSpeed
 
 	
 
+	_attackTime = 0.0
+
+
+func _start_attack_dash() -> void:
+	if not player or not is_instance_valid(player):
+		return
+	var to_player: Vector2 = player.global_position - global_position
+	if to_player.length_squared() > 0.0:
+		_dash_direction = to_player.normalized()
+	else:
+		_dash_direction = _dir
+	currState = SentinalStates.ATTACK
 	_attackTime = 0.0
 
 func _on_animated_sprite_2d_animation_finished() -> void:
 	print(animated_sprite.animation_changed)
 	if animated_sprite.animation == "Idle":
 		if _pending_attack:
-			currState = SentinalStates.ATTACK
+			_start_attack_dash()
 	elif animated_sprite.animation == "Roll":
 		currState = SentinalStates.IDLE
 	pass # Replace with function body.
@@ -165,7 +173,7 @@ func _on_animated_sprite_2d_animation_finished() -> void:
 func _on_animated_sprite_2d_frame_changed() -> void:
 	if animated_sprite.animation == "Idle" and animated_sprite.frame == 7:
 		if _pending_attack:
-			currState = SentinalStates.ATTACK
+			_start_attack_dash()
 	elif animated_sprite.animation == "Roll" and animated_sprite.frame == 8:
 		currState = SentinalStates.IDLE
 	pass # Replace with function body.

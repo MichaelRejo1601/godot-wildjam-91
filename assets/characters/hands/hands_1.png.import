@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ctgrmc5pj7tnn"
-path="res://.godot/imported/raider.png-4400364c03a91f7f10d0839d0f0a0ac4.ctex"
+uid="uid://duogqvoaxf4wn"
+path="res://.godot/imported/hands_1.png-9b83726b77473b2a714c7be08ac5dae7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/raider.png"
-dest_files=["res://.godot/imported/raider.png-4400364c03a91f7f10d0839d0f0a0ac4.ctex"]
+source_file="res://assets/characters/hands/hands_1.png"
+dest_files=["res://.godot/imported/hands_1.png-9b83726b77473b2a714c7be08ac5dae7.ctex"]
 
 [params]
 

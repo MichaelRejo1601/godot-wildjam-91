@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://dmj1es5b4367j"]
 
 [ext_resource type="Script" uid="uid://ctuxroow6jifl" path="res://scenes/Player/PlayerController.gd" id="1_ky53y"]
-[ext_resource type="Texture2D" uid="uid://bhaxckxpq20j1" path="res://assets/characters/raider.png" id="2_ky53y"]
+[ext_resource type="Texture2D" uid="uid://ctgrmc5pj7tnn" path="res://assets/characters/raider.png" id="2_ky53y"]
 [ext_resource type="Script" uid="uid://bn2dwkojkqh5a" path="res://scenes/Player/lantern_flicker.gd" id="3_lantern"]
+[ext_resource type="Texture2D" uid="uid://b0uf71h0oh2ra" path="res://assets/characters/hands/hands_0.png" id="4_ved6o"]
+[ext_resource type="Texture2D" uid="uid://duogqvoaxf4wn" path="res://assets/characters/hands/hands_1.png" id="5_xcisb"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
@@ -128,3 +130,13 @@ monitoring = false
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Player/WhipHitbox" unique_id=691234567]
 shape = SubResource("CapsuleShape2D_whip")
+
+[node name="MovingHands" type="Node2D" parent="Player" unique_id=721785320]
+
+[node name="LeftHand" type="Sprite2D" parent="Player/MovingHands" unique_id=2009270207]
+position = Vector2(-4, 2)
+texture = ExtResource("4_ved6o")
+
+[node name="RightHand" type="Sprite2D" parent="Player/MovingHands" unique_id=752381278]
+position = Vector2(4, 2)
+texture = ExtResource("5_xcisb")
