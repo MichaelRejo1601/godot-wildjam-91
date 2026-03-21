@@ -1,16 +1,17 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bt7dwfgyagdvt"]
 
 [ext_resource type="Script" path="res://scenes/Player/player_bullet.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://dfkl3pye2w245" path="res://scenes/Sentinel/LaserBeam.png" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://qalo0mqfs0mc" path="res://assets/characters/Bullet.png" id="2_nj1ry"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 3.0
 
-[node name="PlayerBullet" type="Area2D"]
+[node name="PlayerBullet" type="Area2D" unique_id=1083851158]
+scale = Vector2(0.5, 0.5)
 script = ExtResource("1_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_texture")
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1741447151]
+texture = ExtResource("2_nj1ry")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1460764367]
 shape = SubResource("CircleShape2D_1")
