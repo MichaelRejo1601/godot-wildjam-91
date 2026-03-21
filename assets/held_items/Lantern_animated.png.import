@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cntp1v5blqhpe"
-path="res://.godot/imported/Gunl.png-a66116bbae0b66fc1bab86f9d57975d0.ctex"
+uid="uid://ctunb7pdic328"
+path="res://.godot/imported/Lantern_animated.png-8952aeb0bc6817c750c42238dc1df4c3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://scenes/Player/Gunl.png"
-dest_files=["res://.godot/imported/Gunl.png-a66116bbae0b66fc1bab86f9d57975d0.ctex"]
+source_file="res://assets/held_items/Lantern_animated.png"
+dest_files=["res://.godot/imported/Lantern_animated.png-8952aeb0bc6817c750c42238dc1df4c3.ctex"]
 
 [params]
 

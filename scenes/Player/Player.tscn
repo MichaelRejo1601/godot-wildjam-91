@@ -5,6 +5,8 @@
 [ext_resource type="Script" uid="uid://bn2dwkojkqh5a" path="res://scenes/Player/lantern_flicker.gd" id="3_lantern"]
 [ext_resource type="Texture2D" uid="uid://b0uf71h0oh2ra" path="res://assets/characters/hands/hands_0.png" id="4_ved6o"]
 [ext_resource type="Texture2D" uid="uid://duogqvoaxf4wn" path="res://assets/characters/hands/hands_1.png" id="5_xcisb"]
+[ext_resource type="Texture2D" uid="uid://ctunb7pdic328" path="res://assets/held_items/Lantern_animated.png" id="6_socpp"]
+[ext_resource type="Texture2D" uid="uid://fsc70y6at75t" path="res://assets/held_items/Gunl.png" id="7_fxc31"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
@@ -102,6 +104,48 @@ fill_to = Vector2(0.5, 0)
 radius = 8.0
 height = 20.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_tl8lu"]
+atlas = ExtResource("6_socpp")
+region = Rect2(8, 0, 8, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qt7jd"]
+atlas = ExtResource("6_socpp")
+region = Rect2(0, 0, 8, 12)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_cd157"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tl8lu")
+}],
+"loop": true,
+"name": &"Off",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qt7jd")
+}],
+"loop": true,
+"name": &"On",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cd157"]
+atlas = ExtResource("7_fxc31")
+region = Rect2(0, 0, 16, 12)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8djf2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cd157")
+}],
+"loop": true,
+"name": &"Gun",
+"speed": 5.0
+}]
+
 [node name="Player" type="Node2D" unique_id=201667921]
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=1711886938]
@@ -140,3 +184,18 @@ texture = ExtResource("4_ved6o")
 [node name="RightHand" type="Sprite2D" parent="Player/MovingHands" unique_id=752381278]
 position = Vector2(4, 2)
 texture = ExtResource("5_xcisb")
+
+[node name="Items" type="Node2D" parent="Player/MovingHands" unique_id=1992626790]
+
+[node name="Lamp" type="AnimatedSprite2D" parent="Player/MovingHands/Items" unique_id=1377650870]
+position = Vector2(21.999998, 4)
+scale = Vector2(0.7, 0.7)
+sprite_frames = SubResource("SpriteFrames_cd157")
+animation = &"On"
+
+[node name="Gun" type="AnimatedSprite2D" parent="Player/MovingHands/Items" unique_id=1118997219]
+self_modulate = Color(0.4026307, 0.5066397, 0.6422597, 1)
+position = Vector2(19, -4)
+scale = Vector2(0.6, 0.6)
+sprite_frames = SubResource("SpriteFrames_8djf2")
+animation = &"Gun"
