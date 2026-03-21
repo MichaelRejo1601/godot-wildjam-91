@@ -73,6 +73,9 @@ func _ready() -> void:
 		# Camera2D ignores parent/node rotation by default.
 		camera.ignore_rotation = false
 	update_lantern_from_health()
+	update_lantern_from_madness()
+	update_lantern_enabled_state()
+	update_lantern_held_state()
 	health_changed.emit(current_health)
 	madness_changed.emit(current_madness)
 	coins_changed.emit(current_coins)
@@ -86,6 +89,8 @@ func _ready() -> void:
 
 func _physics_process(_delta: float) -> void:
 	_update_madness(_delta)
+	update_lantern_enabled_state()
+	update_lantern_held_state()
 	_update_hand_positions()
 	_update_held_item_visuals()
 
@@ -128,6 +133,7 @@ func _update_madness(delta: float) -> void:
 
 	current_madness = next_madness
 	madness_changed.emit(current_madness)
+	update_lantern_from_madness()
 
 
 func update_animation(input_direction: Vector2, is_sprinting: bool) -> void:
@@ -206,6 +212,30 @@ func update_lantern_from_health() -> void:
 	if lantern.has_method("set_health_ratio"):
 		var ratio = float(current_health) / float(MAX_HP)
 		lantern.set_health_ratio(ratio)
+
+
+func update_lantern_from_madness() -> void:
+	if lantern == null:
+		return
+
+	if lantern.has_method("set_madness_ratio"):
+		lantern.set_madness_ratio(get_madness_ratio())
+
+
+func update_lantern_enabled_state() -> void:
+	if lantern == null:
+		return
+
+	if lantern.has_method("set_lamp_enabled"):
+		lantern.set_lamp_enabled(lamp_is_on)
+
+
+func update_lantern_held_state() -> void:
+	if lantern == null:
+		return
+
+	if lantern.has_method("set_lamp_held"):
+		lantern.set_lamp_held(current_held_item == HeldItem.LAMP)
 
 
 func perform_whip_attack() -> void:
@@ -308,16 +338,36 @@ func _initialize_held_items() -> void:
 		gun_item.rotation = 0.0
 	current_held_item = HeldItem.GUN
 	lamp_is_on = true
+	update_lantern_held_state()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			if current_held_item == HeldItem.GUN and attack_cooldown <= 0.0 and not is_attacking:
+				fire_gun()
+				return
+
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_Q:
+			if current_held_item == HeldItem.GUN and attack_cooldown <= 0.0 and not is_attacking:
+				fire_gun()
+				return
 		if event.keycode == KEY_1:
 			current_held_item = HeldItem.GUN
+			update_lantern_enabled_state()
+			update_lantern_held_state()
 		elif event.keycode == KEY_2:
 			if current_held_item == HeldItem.LAMP:
 				lamp_is_on = not lamp_is_on
 			current_held_item = HeldItem.LAMP
+			update_lantern_enabled_state()
+			update_lantern_held_state()
+
+
+func get_madness_ratio() -> float:
+	return clamp(float(current_madness) / float(MAX_MADNESS), 0.0, 1.0)
 
 
 func _update_held_item_visuals() -> void:
@@ -346,7 +396,11 @@ func _update_held_item_visuals() -> void:
 	elif current_held_item == HeldItem.LAMP:
 		gun_item.visible = false
 		lamp_item.visible = true
-		if lamp_is_on:
+		var horror_blackout_active: bool = false
+		if lantern != null and lantern.has_method("is_horror_blackout_active"):
+			horror_blackout_active = lantern.is_horror_blackout_active()
+
+		if lamp_is_on and not horror_blackout_active:
 			lamp_item.play("On")
 		else:
 			lamp_item.play("Off")
