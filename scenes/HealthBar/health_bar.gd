@@ -3,6 +3,7 @@ extends Node2D
 
 @onready var sprite: Sprite2D = $Sprite2D
 const MAX_HP = 14
+signal death
 
 var textures = [
 	preload("res://assets/bars_and_menus/health_bars/health_bar_00.png"),
@@ -31,3 +32,5 @@ func update_health(hp):
 	hp = clamp(hp, 0, MAX_HP)
 	var texture_index = clamp(MAX_HP - hp, 0, textures.size() - 1)
 	sprite.texture = textures[texture_index]
+	if hp == 0:
+		death.emit()
