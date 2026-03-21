@@ -215,8 +215,12 @@ animation = &"Gun"
 [node name="Shovel" type="AnimatedSprite2D" parent="Player/MovingHands/Items" unique_id=908667383]
 self_modulate = Color(0.3034711, 0.32057673, 0.23513156, 1)
 position = Vector2(17, 22)
+scale = Vector2(1.15, 1.15)
 sprite_frames = SubResource("SpriteFrames_mmokv")
 animation = &"Shovel"
 
 [node name="Handle" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=7784633]
 position = Vector2(0, 6)
+
+[node name="Head" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=144676139]
+position = Vector2(0, -5)

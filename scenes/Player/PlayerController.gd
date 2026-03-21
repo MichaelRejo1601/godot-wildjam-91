@@ -49,6 +49,7 @@ void fragment() {
 @onready var gun_item: AnimatedSprite2D = $MovingHands/Items/Gun
 @onready var shovel_item: AnimatedSprite2D = $MovingHands/Items/Shovel
 @onready var shovel_handle: Node2D = $MovingHands/Items/Shovel/Handle
+@onready var shovel_head: Node2D = $MovingHands/Items/Shovel/Head
 
 @export var hand_orbit_radius: float = 4.0
 @export var hand_spacing: float = 4.0
@@ -97,13 +98,16 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @export var gun_screen_shake_duration: float = 0.08
 @export var shovel_forward_offset: float = 3.0
 @export var shovel_handle_world_offset: Vector2 = Vector2.ZERO
-@export var shovel_attack_cooldown: float = 0.22
+@export var shovel_hand_down_offset: float = 2.0
+@export var shovel_aim_up_offset_degrees: float = 45.0
+@export var shovel_attack_cooldown: float = 0.30
 @export var shovel_damage: int = 1
 @export var shovel_knockback_force: float = 160.0
-@export var shovel_sweep_degrees: float = 45.0
-@export var shovel_sweep_duration: float = 0.10
-@export var shovel_visual_sweep_multiplier: float = 1.5
+@export var shovel_sweep_degrees: float = 50.0
+@export var shovel_sweep_duration: float = 0.20
+@export var shovel_visual_sweep_multiplier: float = 4.5
 @export var shovel_hitbox_distance: float = 13.0
+@export var shovel_overlay_z_index: int = 120
 @export var damage_vignette_color: Color = Color(0.30, 0.08, 0.08, 1.0)
 @export var damage_vignette_edge_thickness: float = 0.42
 @export var damage_vignette_edge_softness: float = 0.22
@@ -398,9 +402,11 @@ func perform_shovel_sweep_attack() -> void:
 	_current_attack_direction = attack_direction
 
 	var base_angle: float = attack_direction.angle()
-	var sweep_half_radians: float = deg_to_rad(shovel_sweep_degrees * 0.5)
-	var start_angle: float = base_angle - sweep_half_radians
-	var end_angle: float = base_angle + sweep_half_radians
+	var side_sign: float = -1.0 if attack_direction.x < 0.0 else 1.0
+	var start_offset: float = deg_to_rad(-45.0) * side_sign
+	var end_offset: float = deg_to_rad(45.0) * side_sign
+	var start_angle: float = base_angle + start_offset
+	var end_angle: float = base_angle + end_offset
 
 	whip_hitbox.position = attack_direction * shovel_hitbox_distance
 	whip_hitbox.rotation = start_angle
@@ -408,10 +414,19 @@ func perform_shovel_sweep_attack() -> void:
 
 	if _shovel_attack_tween != null and _shovel_attack_tween.is_valid():
 		_shovel_attack_tween.kill()
-	var visual_half_radians: float = sweep_half_radians * maxf(shovel_visual_sweep_multiplier, 0.1)
 	_shovel_attack_tween = create_tween()
-	_shovel_attack_tween.tween_method(Callable(self, "_set_shovel_visual_sweep_offset"), -visual_half_radians, visual_half_radians, shovel_sweep_duration)
-	_shovel_attack_tween.tween_method(Callable(self, "_set_shovel_visual_sweep_offset"), visual_half_radians, 0.0, shovel_sweep_duration * 0.35)
+	_shovel_attack_tween.tween_method(
+		Callable(self, "_set_shovel_visual_sweep_offset"),
+		start_offset,
+		end_offset,
+		shovel_sweep_duration
+	)
+	_shovel_attack_tween.tween_method(
+		Callable(self, "_set_shovel_visual_sweep_offset"),
+		end_offset,
+		0.0,
+		shovel_sweep_duration * 0.6
+	)
 
 	var sweep_tween: Tween = create_tween()
 	sweep_tween.tween_property(whip_hitbox, "rotation", end_angle, shovel_sweep_duration)
@@ -503,6 +518,10 @@ func _update_hand_positions() -> void:
 	var half_spacing: float = hand_spacing * 0.5
 	left_hand.position = -perpendicular * half_spacing
 	right_hand.position = perpendicular * half_spacing
+	if current_held_item == HeldItem.SHOVEL:
+		var shovel_hand_offset: Vector2 = Vector2(0.0, shovel_hand_down_offset)
+		left_hand.position += shovel_hand_offset
+		right_hand.position += shovel_hand_offset
 
 
 func _initialize_held_items() -> void:
@@ -526,6 +545,8 @@ func _initialize_held_items() -> void:
 	if shovel_item != null:
 		shovel_item.position = Vector2.ZERO
 		shovel_item.rotation = 0.0
+		shovel_item.z_as_relative = false
+		shovel_item.z_index = shovel_overlay_z_index
 	current_held_item = HeldItem.GUN
 	lamp_is_on = true
 	update_lantern_held_state()
@@ -610,18 +631,27 @@ func _update_held_item_visuals() -> void:
 
 	var mouse_left_of_player: bool = get_global_mouse_position().x < global_position.x
 	gun_item.flip_h = mouse_left_of_player
-	shovel_item.flip_h = mouse_left_of_player
 	var aim_angle: float = aim_direction.angle()
 	# When horizontally flipped, subtract PI so the muzzle still faces the mouse.
 	gun_item.rotation = aim_angle - PI if mouse_left_of_player else aim_angle
-	var shovel_base_angle: float = aim_angle - PI if mouse_left_of_player else aim_angle
-	shovel_item.rotation = shovel_base_angle + _shovel_visual_sweep_offset
 	gun_item.position = aim_direction * gun_forward_offset
-	shovel_item.position = aim_direction * shovel_forward_offset
-	if shovel_handle != null and moving_hands != null:
+	if shovel_item != null and shovel_handle != null and shovel_head != null and moving_hands != null:
 		var desired_handle_global: Vector2 = moving_hands.global_position + (aim_direction * shovel_forward_offset) + shovel_handle_world_offset
-		var handle_to_target: Vector2 = desired_handle_global - shovel_handle.global_position
-		shovel_item.global_position += handle_to_target
+		var desired_head_direction: Vector2 = get_global_mouse_position() - desired_handle_global
+		if desired_head_direction.length_squared() <= 0.0:
+			desired_head_direction = aim_direction
+		var shovel_up_offset_radians: float = deg_to_rad(shovel_aim_up_offset_degrees)
+		var side_sign: float = -1.0 if desired_head_direction.x >= 0.0 else 1.0
+		desired_head_direction = desired_head_direction.rotated(shovel_up_offset_radians * side_sign)
+
+		var local_handle_to_head: Vector2 = shovel_head.position - shovel_handle.position
+		if local_handle_to_head.length_squared() <= 0.0:
+			local_handle_to_head = Vector2.UP
+
+		var target_rotation: float = desired_head_direction.angle() - local_handle_to_head.angle() + _shovel_visual_sweep_offset
+		shovel_item.global_rotation = target_rotation
+		var current_handle_global: Vector2 = shovel_item.to_global(shovel_handle.position)
+		shovel_item.global_position += desired_handle_global - current_handle_global
 	lamp_item.position = lamp_offset
 
 	if current_held_item == HeldItem.GUN:
@@ -644,5 +674,7 @@ func _update_held_item_visuals() -> void:
 		gun_item.visible = false
 		lamp_item.visible = false
 		shovel_item.visible = true
+		shovel_item.z_as_relative = false
+		shovel_item.z_index = shovel_overlay_z_index
 		if shovel_item.animation != "Shovel":
 			shovel_item.play("Shovel")
