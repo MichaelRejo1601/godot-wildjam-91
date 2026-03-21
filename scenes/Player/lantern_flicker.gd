@@ -13,9 +13,9 @@ extends PointLight2D
 @export var min_health_radius_scale: float = 0.45
 @export var min_health_energy_scale: float = 0.7
 @export var lamp_off_energy: float = 0.5
-@export var lamp_off_radius: float = 0.40
+@export var lamp_off_radius: float = 2
 @export var held_energy_multiplier: float = 1.05
-@export var held_radius_multiplier: float = 1.25
+@export var held_radius_multiplier: float = 1.45
 
 @export var horror_interval_low_madness: float = 3.0
 @export var horror_interval_high_madness: float = 0.30
@@ -23,6 +23,7 @@ extends PointLight2D
 @export var horror_off_duration_high_madness: float = 0.35
 @export var horror_start_madness_ratio: float = 0.50
 @export var horror_blackout_fade_time: float = 0.10
+@export var horror_dark_phase_bias_at_max_madness: float = 3.5
 
 @export var low_hold_min_time: float = 0.10
 @export var low_hold_max_time: float = 0.35
@@ -50,15 +51,15 @@ var health_ratio := 1.0
 var madness_ratio := 0.0
 var lamp_enabled := true
 var lamp_held := false
-var _horror_next_flicker_time := 0.0
-var _horror_off_time_remaining := 0.0
+var _horror_phase_time_remaining := 0.0
+var _horror_is_dark_phase := false
 var _horror_blackout_blend := 0.0
 
 
 func _ready() -> void:
 	rng.randomize()
 	start_new_cycle()
-	_schedule_next_horror_flicker()
+	_schedule_next_horror_phase()
 
 
 func _process(delta: float) -> void:
@@ -68,7 +69,7 @@ func _process(delta: float) -> void:
 		return
 
 	_update_horror_flicker(delta)
-	var blackout_target: float = 1.0 if _horror_off_time_remaining > 0.0 else 0.0
+	var blackout_target: float = 1.0 if _horror_is_dark_phase else 0.0
 	var fade_speed: float = 1.0 / max(horror_blackout_fade_time, 0.001)
 	_horror_blackout_blend = move_toward(_horror_blackout_blend, blackout_target, delta * fade_speed)
 
@@ -139,7 +140,12 @@ func set_health_ratio(value: float) -> void:
 
 func set_madness_ratio(value: float) -> void:
 	madness_ratio = clamp(value, 0.0, 1.0)
-	_schedule_next_horror_flicker()
+	if _get_effective_madness() <= 0.0:
+		_horror_is_dark_phase = false
+		_horror_phase_time_remaining = 0.0
+	else:
+		if _horror_phase_time_remaining <= 0.0:
+			_schedule_next_horror_phase()
 
 
 func set_lamp_enabled(value: bool) -> void:
@@ -167,43 +173,44 @@ func _apply_health_energy_scale(value: float) -> float:
 
 
 func _update_horror_flicker(delta: float) -> void:
-	var effective_madness: float = clampf(
+	var effective_madness: float = _get_effective_madness()
+
+	if effective_madness <= 0.0:
+		_horror_is_dark_phase = false
+		_horror_phase_time_remaining = 0.0
+		return
+
+	_horror_phase_time_remaining = maxf(_horror_phase_time_remaining - delta, 0.0)
+	if _horror_phase_time_remaining > 0.0:
+		return
+
+	_schedule_next_horror_phase()
+
+
+func _schedule_next_horror_phase() -> void:
+	var effective_madness: float = _get_effective_madness()
+
+	if effective_madness <= 0.0:
+		_horror_is_dark_phase = false
+		_horror_phase_time_remaining = 0.0
+		return
+
+	_horror_is_dark_phase = not _horror_is_dark_phase
+
+	var lit_duration: float = lerpf(horror_interval_low_madness, horror_interval_high_madness, effective_madness)
+	var dark_duration: float = lerpf(horror_off_duration_low_madness, horror_off_duration_high_madness, effective_madness)
+	# At high madness, stretch darkness so the light only pulses on occasionally.
+	dark_duration *= lerpf(1.0, horror_dark_phase_bias_at_max_madness, effective_madness)
+
+	if _horror_is_dark_phase:
+		_horror_phase_time_remaining = rng.randf_range(dark_duration * 0.8, dark_duration * 1.35)
+	else:
+		_horror_phase_time_remaining = rng.randf_range(lit_duration * 0.7, lit_duration * 1.3)
+
+
+func _get_effective_madness() -> float:
+	return clampf(
 		(madness_ratio - horror_start_madness_ratio) / maxf(1.0 - horror_start_madness_ratio, 0.001),
 		0.0,
 		1.0
 	)
-
-	if effective_madness <= 0.0:
-		_horror_off_time_remaining = 0.0
-		_horror_next_flicker_time = max(_horror_next_flicker_time - delta, 0.0)
-		return
-
-	if _horror_off_time_remaining > 0.0:
-		_horror_off_time_remaining = max(_horror_off_time_remaining - delta, 0.0)
-		if _horror_off_time_remaining <= 0.0:
-			_schedule_next_horror_flicker()
-		return
-
-	_horror_next_flicker_time -= delta
-	if _horror_next_flicker_time > 0.0:
-		return
-
-	_horror_off_time_remaining = rng.randf_range(
-		lerpf(horror_off_duration_low_madness, horror_off_duration_high_madness, effective_madness),
-		lerpf(horror_off_duration_low_madness, horror_off_duration_high_madness, effective_madness) * 1.35
-	)
-
-
-func _schedule_next_horror_flicker() -> void:
-	var effective_madness: float = clampf(
-		(madness_ratio - horror_start_madness_ratio) / maxf(1.0 - horror_start_madness_ratio, 0.001),
-		0.0,
-		1.0
-	)
-
-	if effective_madness <= 0.0:
-		_horror_next_flicker_time = horror_interval_low_madness
-		return
-
-	var base_interval: float = lerpf(horror_interval_low_madness, horror_interval_high_madness, effective_madness)
-	_horror_next_flicker_time = rng.randf_range(base_interval * 0.7, base_interval * 1.3)

@@ -22,6 +22,8 @@ var dungeon_tilemaps: Array = []
 @export var max_health: int = 2
 @export var hit_knockback_force: float = 160.0
 @export var hit_stun_duration: float = 0.12
+@export var hit_flash_duration: float = 0.14
+@export var hit_flash_intensity: float = 2.5
 
 
 var _dir: Vector2 = Vector2.RIGHT
@@ -41,6 +43,7 @@ var currState: SentinalStates = SentinalStates.IDLE
 var _pending_attack: bool = false
 var current_health: int = 1
 var _hit_stun_timer: float = 0.0
+var _hit_flash_tween: Tween
 signal about_to_be_deleted(dead_enemy: CharacterBody2D)
 
 func _ready() -> void:
@@ -195,6 +198,8 @@ func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_for
 	if amount <= 0:
 		return
 
+	_play_hit_flash()
+
 	current_health -= amount
 	if current_health <= 0:
 		about_to_be_deleted.emit(self)
@@ -208,3 +213,16 @@ func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_for
 		velocity = hit_direction.normalized() * applied_force
 		_hit_stun_timer = hit_stun_duration
 		currState = SentinalStates.IDLE
+
+
+func _play_hit_flash() -> void:
+	if animated_sprite == null:
+		return
+
+	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
+		_hit_flash_tween.kill()
+
+	var flash_color := Color(hit_flash_intensity, hit_flash_intensity, hit_flash_intensity, 1.0)
+	animated_sprite.self_modulate = flash_color
+	_hit_flash_tween = create_tween()
+	_hit_flash_tween.tween_property(animated_sprite, "self_modulate", Color(1.0, 1.0, 1.0, 1.0), hit_flash_duration)

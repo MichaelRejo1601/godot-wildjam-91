@@ -21,10 +21,13 @@ var dungeon_tilemaps: Array = []
 @export var predictive_shot_lead_scale: float = 0.60
 @export var hit_knockback_force: float = 140.0
 @export var hit_stun_duration: float = 0.10
+@export var hit_flash_duration: float = 0.14
+@export var hit_flash_intensity: float = 2.5
 
 var _foundPlaye: bool = false
 
 const LaserBeamScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
+const BloodScene = preload("res://scenes/Blood/Blood.tscn")
 const LASER_DEFAULT_SPEED = 20.0
 
 var _dir: Vector2 = Vector2.RIGHT
@@ -34,6 +37,8 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _attackInterval: float 
 var _is_firing_burst: bool = false
 var _hit_stun_timer: float = 0.0
+var _hit_flash_tween: Tween
+var _is_dying: bool = false
 
 enum SentinalStates {
 	IDLE, 
@@ -211,8 +216,16 @@ func _on_animated_sprite_2d_animation_finished() -> void:
 
 
 func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_force: float = -1.0) -> void:
+	if _is_dying:
+		return
+
+	if amount > 0:
+		_play_hit_flash()
+
 	health -= amount
 	if health <= 0:
+		_is_dying = true
+		_spawn_blood_on_death()
 		queue_free()
 		return
 
@@ -223,3 +236,32 @@ func take_damage(amount: int = 1, hit_direction: Vector2 = Vector2.ZERO, hit_for
 		velocity = hit_direction.normalized() * applied_force
 		_hit_stun_timer = hit_stun_duration
 		currState = SentinalStates.IDLE
+
+
+func _spawn_blood_on_death() -> void:
+	var blood := BloodScene.instantiate()
+	var parent := get_parent()
+	var blood_position: Vector2 = global_position + Vector2(0.0, 4.0)
+	blood_position += Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(-2.0, 2.0))
+
+	if parent != null:
+		parent.add_child(blood)
+		if blood is Node2D:
+			(blood as Node2D).global_position = blood_position
+	else:
+		get_tree().current_scene.add_child(blood)
+		if blood is Node2D:
+			(blood as Node2D).global_position = blood_position
+
+
+func _play_hit_flash() -> void:
+	if animated_sprite == null:
+		return
+
+	if _hit_flash_tween != null and _hit_flash_tween.is_valid():
+		_hit_flash_tween.kill()
+
+	var flash_color := Color(hit_flash_intensity, hit_flash_intensity, hit_flash_intensity, 1.0)
+	animated_sprite.self_modulate = flash_color
+	_hit_flash_tween = create_tween()
+	_hit_flash_tween.tween_property(animated_sprite, "self_modulate", Color(1.0, 1.0, 1.0, 1.0), hit_flash_duration)
