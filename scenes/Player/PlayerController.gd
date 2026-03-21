@@ -47,6 +47,8 @@ void fragment() {
 @onready var items: Node2D = $MovingHands/Items
 @onready var lamp_item: AnimatedSprite2D = $MovingHands/Items/Lamp
 @onready var gun_item: AnimatedSprite2D = $MovingHands/Items/Gun
+@onready var shovel_item: AnimatedSprite2D = $MovingHands/Items/Shovel
+@onready var shovel_handle: Node2D = $MovingHands/Items/Shovel/Handle
 
 @export var hand_orbit_radius: float = 4.0
 @export var hand_spacing: float = 4.0
@@ -62,6 +64,7 @@ const HIT_SHAKE_STEP_TIME = 0.025
 enum HeldItem {
 	GUN,
 	LAMP,
+	SHOVEL,
 }
 
 enum PlayerStates {
@@ -92,6 +95,15 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @export var gun_damage: int = 1
 @export var gun_screen_shake_amount: float = 3.0
 @export var gun_screen_shake_duration: float = 0.08
+@export var shovel_forward_offset: float = 3.0
+@export var shovel_handle_world_offset: Vector2 = Vector2.ZERO
+@export var shovel_attack_cooldown: float = 0.22
+@export var shovel_damage: int = 1
+@export var shovel_knockback_force: float = 160.0
+@export var shovel_sweep_degrees: float = 45.0
+@export var shovel_sweep_duration: float = 0.10
+@export var shovel_visual_sweep_multiplier: float = 1.5
+@export var shovel_hitbox_distance: float = 13.0
 @export var damage_vignette_color: Color = Color(0.30, 0.08, 0.08, 1.0)
 @export var damage_vignette_edge_thickness: float = 0.42
 @export var damage_vignette_edge_softness: float = 0.22
@@ -106,6 +118,10 @@ var damage_vignette_material: ShaderMaterial
 var damage_vignette_tween: Tween
 var damage_vignette_flash_alpha: float = 0.0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _current_attack_direction: Vector2 = Vector2.RIGHT
+var _shovel_hit_targets: Array[Node2D] = []
+var _shovel_visual_sweep_offset: float = 0.0
+var _shovel_attack_tween: Tween
 
 
 func _ready() -> void:
@@ -156,10 +172,9 @@ func _physics_process(_delta: float) -> void:
 	if attack_cooldown > 0:
 		attack_cooldown -= _delta
 	
-	# Attack action only drives gun firing. Lamp toggle is handled by left click/key input.
+	# Attack action mirrors left-click primary action for currently held item.
 	if Input.is_action_just_pressed("attack") and attack_cooldown <= 0 and not is_attacking:
-		if current_held_item == HeldItem.GUN:
-			fire_gun()
+		_use_primary_item_action()
 
 
 func _update_madness(delta: float) -> void:
@@ -364,15 +379,51 @@ func update_lantern_held_state() -> void:
 
 
 func perform_whip_attack() -> void:
+	# Legacy call path retained; now mapped to shovel sweep behavior.
+	perform_shovel_sweep_attack()
+
+
+func perform_shovel_sweep_attack() -> void:
+	if whip_hitbox == null:
+		return
+
 	is_attacking = true
-	attack_cooldown = ATTACK_COOLDOWN_TIME
-	if whip_hitbox != null:
-		whip_hitbox.monitoring = true
-		whip_hitbox.position.x = 15.0 if not facing_left else -15.0
-	await get_tree().create_timer(0.3).timeout
-	if whip_hitbox != null:
-		whip_hitbox.monitoring = false
+	attack_cooldown = shovel_attack_cooldown
+	_shovel_hit_targets.clear()
+
+	var to_mouse: Vector2 = get_global_mouse_position() - global_position
+	var attack_direction: Vector2 = Vector2.LEFT if facing_left else Vector2.RIGHT
+	if to_mouse.length_squared() > 0.0:
+		attack_direction = to_mouse.normalized()
+	_current_attack_direction = attack_direction
+
+	var base_angle: float = attack_direction.angle()
+	var sweep_half_radians: float = deg_to_rad(shovel_sweep_degrees * 0.5)
+	var start_angle: float = base_angle - sweep_half_radians
+	var end_angle: float = base_angle + sweep_half_radians
+
+	whip_hitbox.position = attack_direction * shovel_hitbox_distance
+	whip_hitbox.rotation = start_angle
+	whip_hitbox.monitoring = true
+
+	if _shovel_attack_tween != null and _shovel_attack_tween.is_valid():
+		_shovel_attack_tween.kill()
+	var visual_half_radians: float = sweep_half_radians * maxf(shovel_visual_sweep_multiplier, 0.1)
+	_shovel_attack_tween = create_tween()
+	_shovel_attack_tween.tween_method(Callable(self, "_set_shovel_visual_sweep_offset"), -visual_half_radians, visual_half_radians, shovel_sweep_duration)
+	_shovel_attack_tween.tween_method(Callable(self, "_set_shovel_visual_sweep_offset"), visual_half_radians, 0.0, shovel_sweep_duration * 0.35)
+
+	var sweep_tween: Tween = create_tween()
+	sweep_tween.tween_property(whip_hitbox, "rotation", end_angle, shovel_sweep_duration)
+	await sweep_tween.finished
+
+	whip_hitbox.monitoring = false
 	is_attacking = false
+	_set_shovel_visual_sweep_offset(0.0)
+
+
+func _set_shovel_visual_sweep_offset(value: float) -> void:
+	_shovel_visual_sweep_offset = value
 
 
 func fire_gun() -> void:
@@ -414,8 +465,19 @@ func _play_gun_screen_shake() -> void:
 
 
 func _on_whip_hitbox_body_entered(body: Node2D) -> void:
+	if not is_attacking:
+		return
+
 	if body.is_in_group("enemies") and body.has_method("take_damage"):
-		body.take_damage(1)
+		if _shovel_hit_targets.has(body):
+			return
+		_shovel_hit_targets.append(body)
+
+		var knockback_direction: Vector2 = body.global_position - global_position
+		if knockback_direction.length_squared() <= 0.0:
+			knockback_direction = _current_attack_direction
+
+		body.take_damage(shovel_damage, knockback_direction.normalized(), shovel_knockback_force)
 
 
 func _update_hand_positions() -> void:
@@ -461,6 +523,9 @@ func _initialize_held_items() -> void:
 	if gun_item != null:
 		gun_item.position = Vector2.ZERO
 		gun_item.rotation = 0.0
+	if shovel_item != null:
+		shovel_item.position = Vector2.ZERO
+		shovel_item.rotation = 0.0
 	current_held_item = HeldItem.GUN
 	lamp_is_on = true
 	update_lantern_held_state()
@@ -470,11 +535,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-			if current_held_item == HeldItem.GUN and attack_cooldown <= 0.0 and not is_attacking:
-				fire_gun()
-				return
-			if current_held_item == HeldItem.LAMP:
-				_toggle_lamp_power()
+			if attack_cooldown <= 0.0 and not is_attacking:
+				_use_primary_item_action()
 				return
 		elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
 			_cycle_held_item()
@@ -496,6 +558,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			current_held_item = HeldItem.LAMP
 			update_lantern_enabled_state()
 			update_lantern_held_state()
+		elif event.keycode == KEY_3:
+			current_held_item = HeldItem.SHOVEL
+			update_lantern_enabled_state()
+			update_lantern_held_state()
+
+
+func _use_primary_item_action() -> void:
+	match current_held_item:
+		HeldItem.GUN:
+			fire_gun()
+		HeldItem.LAMP:
+			_toggle_lamp_power()
+		HeldItem.SHOVEL:
+			perform_shovel_sweep_attack()
 
 
 func _toggle_lamp_power() -> void:
@@ -508,6 +584,8 @@ func _cycle_held_item() -> void:
 		HeldItem.GUN:
 			current_held_item = HeldItem.LAMP
 		HeldItem.LAMP:
+			current_held_item = HeldItem.SHOVEL
+		HeldItem.SHOVEL:
 			current_held_item = HeldItem.GUN
 
 	update_lantern_enabled_state()
@@ -522,7 +600,7 @@ func _update_held_item_visuals() -> void:
 	if items != null:
 		items.position = Vector2.ZERO
 
-	if gun_item == null or lamp_item == null:
+	if gun_item == null or lamp_item == null or shovel_item == null:
 		return
 
 	var to_mouse: Vector2 = get_global_mouse_position() - global_position
@@ -532,18 +610,28 @@ func _update_held_item_visuals() -> void:
 
 	var mouse_left_of_player: bool = get_global_mouse_position().x < global_position.x
 	gun_item.flip_h = mouse_left_of_player
+	shovel_item.flip_h = mouse_left_of_player
 	var aim_angle: float = aim_direction.angle()
 	# When horizontally flipped, subtract PI so the muzzle still faces the mouse.
 	gun_item.rotation = aim_angle - PI if mouse_left_of_player else aim_angle
+	var shovel_base_angle: float = aim_angle - PI if mouse_left_of_player else aim_angle
+	shovel_item.rotation = shovel_base_angle + _shovel_visual_sweep_offset
 	gun_item.position = aim_direction * gun_forward_offset
+	shovel_item.position = aim_direction * shovel_forward_offset
+	if shovel_handle != null and moving_hands != null:
+		var desired_handle_global: Vector2 = moving_hands.global_position + (aim_direction * shovel_forward_offset) + shovel_handle_world_offset
+		var handle_to_target: Vector2 = desired_handle_global - shovel_handle.global_position
+		shovel_item.global_position += handle_to_target
 	lamp_item.position = lamp_offset
 
 	if current_held_item == HeldItem.GUN:
 		gun_item.visible = true
 		lamp_item.visible = false
+		shovel_item.visible = false
 	elif current_held_item == HeldItem.LAMP:
 		gun_item.visible = false
 		lamp_item.visible = true
+		shovel_item.visible = false
 		var horror_blackout_active: bool = false
 		if lantern != null and lantern.has_method("is_horror_blackout_active"):
 			horror_blackout_active = lantern.is_horror_blackout_active()
@@ -552,3 +640,9 @@ func _update_held_item_visuals() -> void:
 			lamp_item.play("On")
 		else:
 			lamp_item.play("Off")
+	elif current_held_item == HeldItem.SHOVEL:
+		gun_item.visible = false
+		lamp_item.visible = false
+		shovel_item.visible = true
+		if shovel_item.animation != "Shovel":
+			shovel_item.play("Shovel")
