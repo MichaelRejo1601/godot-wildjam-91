@@ -1,6 +1,8 @@
 class_name Dungeon
 extends Node2D
 
+signal exit_door_entered
+
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
 @onready var wall_layer: TileMapLayer = $WallTileMapLayer
 @onready var sandy_wall_layer: TileMapLayer = $SandyWallTileMapLayer 
@@ -43,6 +45,8 @@ var spawned_chests: Array[Node] = []
 
 var rng = RandomNumberGenerator.new()
 var chest_scene = preload("res://scenes/Chest/Chest.tscn")
+var exit_door_scene = preload("res://scenes/Dungeon/ExitDoor.tscn")
+var spawned_exit_door: Node = null
 
 class Room:
 	var rect: Rect2i
@@ -93,6 +97,7 @@ func generate_dungeon():
 
 	build_walls_around_sand()
 	spawn_chests_in_rooms()
+	spawn_exit_door()
 
 
 func build_walls_around_sand():
@@ -178,6 +183,12 @@ func clear_spawned_chests():
 	spawned_chests.clear()
 
 
+func clear_spawned_door() -> void:
+	if is_instance_valid(spawned_exit_door):
+		spawned_exit_door.queue_free()
+	spawned_exit_door = null
+
+
 func spawn_chests_in_rooms():
 	for room in rooms:
 		if rng.randf() > CHEST_ROOM_CHANCE:
@@ -189,3 +200,16 @@ func spawn_chests_in_rooms():
 		chest.global_position = sand_layer.to_global(sand_layer.map_to_local(chest_cell))
 		add_child(chest)
 		spawned_chests.append(chest)
+
+
+func spawn_exit_door() -> void:
+	clear_spawned_door()
+	if rooms.is_empty():
+		return
+	var end_room: Room = rooms[-1]
+	var door = exit_door_scene.instantiate()
+	var door_cell = end_room.center()
+	door.global_position = sand_layer.to_global(sand_layer.map_to_local(door_cell))
+	door.player_entered.connect(func(): exit_door_entered.emit())
+	add_child(door)
+	spawned_exit_door = door

@@ -2,6 +2,7 @@ extends Node2D
 
 signal level_lost
 @export_file("*.tscn") var gameOver : String
+@export_file("*.tscn") var nextLevel : String
 const PLACEHOLDER_SCENES := {
 	"res://scenes/Sentinel/Sentinel.tscn": true,
 	"res://scenes/Mummy/Mummy.tscn": true,
@@ -16,6 +17,7 @@ func _ready() -> void:
 	call_deferred("_setup_health_bar")
 	call_deferred("_setup_madness_bar")
 	call_deferred("_setup_coin_bar")
+	call_deferred("_setup_exit_door")
 
 
 func _clear_editor_placed_entities() -> void:
@@ -109,3 +111,17 @@ func _on_health_bar_death() -> void:
 	level_lost.emit()
 	SceneLoader.load_scene(gameOver, false)
 	pass # Replace with function body.
+
+
+func _setup_exit_door() -> void:
+	var dungeon = get_node_or_null("Dungeon")
+	if dungeon == null:
+		return
+	if dungeon.has_signal("exit_door_entered"):
+		dungeon.exit_door_entered.connect(_on_exit_door_entered)
+
+
+func _on_exit_door_entered() -> void:
+	var target := nextLevel if not nextLevel.is_empty() else gameOver
+	if not target.is_empty():
+		SceneLoader.load_scene(target, false)

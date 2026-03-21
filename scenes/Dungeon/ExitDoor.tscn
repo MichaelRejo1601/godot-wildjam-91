@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cexitdoor0001"]
+
+[ext_resource type="Script" path="res://scenes/Dungeon/ExitDoor.gd" id="1_exitd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0"]
+size = Vector2(20, 28)
+
+[node name="ExitDoor" type="Area2D"]
+script = ExtResource("1_exitd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -24.0
+offset_top = -12.0
+offset_right = 24.0
+offset_bottom = 12.0
+text = "EXIT"
+horizontal_alignment = 1
+vertical_alignment = 1
