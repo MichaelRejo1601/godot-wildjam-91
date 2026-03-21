@@ -90,7 +90,7 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @onready var whip_hitbox: Area2D = $WhipHitbox
 @export var gun_fire_cooldown: float = 0.18
 @export var gun_damage: int = 1
-@export var gun_screen_shake_amount: float = 4.0
+@export var gun_screen_shake_amount: float = 3.0
 @export var gun_screen_shake_duration: float = 0.08
 @export var damage_vignette_color: Color = Color(0.30, 0.08, 0.08, 1.0)
 @export var damage_vignette_edge_thickness: float = 0.42
@@ -391,7 +391,7 @@ func fire_gun() -> void:
 	shot.direction = bullet_direction
 	shot.source = self
 	shot.damage = gun_damage
-	shot.speed = 240.0
+	shot.speed = 440.0
 	shot.lifetime = 1.2
 	shot.z_index = 5
 	get_parent().add_child(shot)
