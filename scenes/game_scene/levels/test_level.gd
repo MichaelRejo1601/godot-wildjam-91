@@ -1,5 +1,7 @@
 extends Node2D
 
+signal level_lost
+@export_file("*.tscn") var gameOver : String
 const PLACEHOLDER_SCENES := {
 	"res://scenes/Sentinel/Sentinel.tscn": true,
 	"res://scenes/Mummy/Mummy.tscn": true,
@@ -100,3 +102,10 @@ func _setup_coin_bar() -> void:
 
 	if coin_bar.has_method("update_coins"):
 		coin_bar.update_coins(player.current_coins)
+
+
+func _on_health_bar_death() -> void:
+	print("level Lost")
+	level_lost.emit()
+	SceneLoader.load_scene(gameOver, false)
+	pass # Replace with function body.
