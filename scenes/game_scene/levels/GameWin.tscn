@@ -99,6 +99,28 @@ layout_mode = 2
 layout_mode = 2
 alignment = 1
 
+[node name="CoinsLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer" unique_id=1619951386]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = " Coins Collected: 0"
+horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer" unique_id=2008218056]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Time Survived: 0s"
+horizontal_alignment = 1
+
 [node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer" unique_id=1199020766]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
