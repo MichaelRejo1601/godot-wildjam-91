@@ -10,8 +10,12 @@ const PLACEHOLDER_SCENES := {
 }
 
 func _ready() -> void:
-	# Store the level start time for death screen to calculate time survived
-	get_tree().root.set_meta("level_start_time", Time.get_ticks_msec())
+	# Keep a single run start timestamp so end stats include the full run across levels.
+	var root = get_tree().root
+	if root != null:
+		if not root.has_meta("run_start_time"):
+			root.set_meta("run_start_time", Time.get_ticks_msec())
+		root.set_meta("level_start_time", root.get_meta("run_start_time"))
 
 	_clear_editor_placed_entities()
 	print("Test level loaded: spawning test objects")

@@ -9,15 +9,19 @@ signal main_menu_pressed
 
 
 func _ready() -> void:
-	# Get the player to retrieve coins collected
-	var player = _get_player()
-
+	var root = get_tree().root
+	# Prefer persisted run stats (used by win scene after level transitions).
 	var coins = 0
-	if player != null:
-		if player.has_meta("current_coins"):
-			coins = player.get_meta("current_coins")
-		elif "current_coins" in player:
-			coins = player.current_coins
+	if root != null and root.has_meta("win_coins"):
+		coins = int(root.get_meta("win_coins"))
+	else:
+		# Get the player to retrieve coins collected
+		var player = _get_player()
+		if player != null:
+			if player.has_meta("current_coins"):
+				coins = player.get_meta("current_coins")
+			elif "current_coins" in player:
+				coins = player.current_coins
 
 	coins_label.text = "Coins Collected: %d" % coins
 
@@ -31,9 +35,19 @@ func _ready() -> void:
 
 
 func _calculate_time_survived() -> int:
-	# Check if we stored a start time in metadata
-	if get_tree().root.has_meta("level_start_time"):
-		var start_time = get_tree().root.get_meta("level_start_time")
+	var root = get_tree().root
+	if root == null:
+		return 0
+
+	# Prefer full-run timer across levels.
+	if root.has_meta("run_start_time"):
+		var start_time = root.get_meta("run_start_time")
+		var elapsed = Time.get_ticks_msec() - start_time
+		return int(elapsed / 1000.0)
+
+	# Fallback for older flows.
+	if root.has_meta("level_start_time"):
+		var start_time = root.get_meta("level_start_time")
 		var elapsed = Time.get_ticks_msec() - start_time
 		return int(elapsed / 1000.0)
 
@@ -42,6 +56,7 @@ func _calculate_time_survived() -> int:
 
 func _on_play_again_button_pressed() -> void:
 	play_again_pressed.emit()
+	_clear_run_stats_meta()
 
 	# Get the level path that was stored before loading this death screen
 	var level_path = AppConfig.game_scene_path
@@ -50,6 +65,7 @@ func _on_play_again_button_pressed() -> void:
 
 func _on_main_menu_button_pressed() -> void:
 	main_menu_pressed.emit()
+	_clear_run_stats_meta()
 	GameState.reset()
 	SceneLoader.load_scene(AppConfig.main_menu_scene_path, false)
 
@@ -64,3 +80,13 @@ func _get_player() -> Node:
 			if player == null:
 				player = scene.get_node_or_null("Player/CharacterBody2D")
 	return player
+
+
+func _clear_run_stats_meta() -> void:
+	var root = get_tree().root
+	if root == null:
+		return
+	root.remove_meta("run_start_time")
+	root.remove_meta("win_coins")
+	root.remove_meta("win_bullets")
+	root.remove_meta("level_start_time")

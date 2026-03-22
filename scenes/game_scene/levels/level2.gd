@@ -249,6 +249,11 @@ func _setup_boss_health_bar() -> void:
 
 
 func _on_boss_defeated() -> void:
+	var player = _get_level_player_body()
+	var root = get_tree().root
+	if player != null and root != null and player.has_method("get"):
+		root.set_meta("win_coins", int(player.get("current_coins")))
+		root.set_meta("win_bullets", int(player.get("current_bullets")))
 	if game_win_scene != null:
 		SceneLoader.load_scene(game_win_scene.resource_path, false)
 
