@@ -10,6 +10,9 @@ const PLACEHOLDER_SCENES := {
 }
 
 func _ready() -> void:
+	# Store the level start time for death screen to calculate time survived
+	get_tree().root.set_meta("level_start_time", Time.get_ticks_msec())
+
 	_clear_editor_placed_entities()
 	print("Test level loaded: spawning test objects")
 	# Defer so Dungeon._ready() has generated the tilemap before we query sand cells.
@@ -107,10 +110,24 @@ func _setup_coin_bar() -> void:
 
 
 func _on_health_bar_death() -> void:
-	print("level Lost")
 	level_lost.emit()
-	SceneLoader.load_scene(gameOver, false)
-	pass # Replace with function body.
+
+	# Lock player controls to prevent further input
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		player = get_node_or_null("Player/CharacterBody2D")
+	if player != null and player.has_method("set_controls_locked"):
+		player.set_controls_locked(true)
+
+	# Store the current level path so death screen can reload it
+	var level_path = get_scene_file_path()
+	get_tree().root.set_meta("last_level_path", level_path)
+
+	if gameOver and not gameOver.is_empty():
+		SceneLoader.load_scene(gameOver, false)
+	else:
+		# Fallback to death screen if gameOver path not set
+		SceneLoader.load_scene("res://scenes/windows/death_screen.tscn", false)
 
 
 func _setup_exit_door() -> void:
