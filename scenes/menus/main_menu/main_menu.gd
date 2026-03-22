@@ -11,9 +11,11 @@ extends MainMenu
 @onready var level_select_button = %LevelSelectButton
 @onready var new_game_confirmation = %NewGameConfirmation
 
+const INTRO_CRAWL_SCENE := "res://scenes/intro/intro_crawl.tscn"
+
 func load_game_scene() -> void:
 	GameState.start_game()
-	super.load_game_scene()
+	SceneLoader.load_scene(INTRO_CRAWL_SCENE)
 
 func new_game() -> void:
 	if confirm_new_game and continue_game_button.visible:
