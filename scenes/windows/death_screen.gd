@@ -9,9 +9,6 @@ signal main_menu_pressed
 
 
 func _ready() -> void:
-	# Make sure the death screen is on top
-	z_index = 9999
-
 	# Get the player to retrieve coins collected
 	var player = _get_player()
 
@@ -22,11 +19,11 @@ func _ready() -> void:
 		elif "current_coins" in player:
 			coins = player.current_coins
 
-	coins_label.text = "💰 Coins Collected: %d" % coins
+	coins_label.text = "Coins Collected: %d" % coins
 
 	# Calculate time survived
 	var time_survived = _calculate_time_survived()
-	time_label.text = "⏱ Time Survived: %ds" % time_survived
+	time_label.text = "Time Survived: %ds" % time_survived
 
 	# Play YOU DIED flicker animation
 	if animation_player != null:

@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://bls5wflxpelpn"]
 
 [ext_resource type="Texture2D" uid="uid://kwni1o7ymamm" path="res://assets/start_menu/start_menu.png" id="1_udhro"]
-[ext_resource type="Script" path="res://scenes/windows/death_screen.gd" id="2_xw8ke"]
+[ext_resource type="Script" uid="uid://cj4h5iy7se5mq" path="res://scenes/windows/death_screen.gd" id="2_xw8ke"]
+[ext_resource type="Texture2D" uid="uid://yqvfgu3b3o" path="res://assets/death_screen_icons/play.png" id="3_2ysqx"]
+[ext_resource type="Texture2D" uid="uid://cf800ofpblvwl" path="res://assets/death_screen_icons/home.png" id="4_e54vk"]
 
 [sub_resource type="Animation" id="TitlePulse"]
 resource_name = "title_pulse"
@@ -97,28 +99,6 @@ layout_mode = 2
 layout_mode = 2
 alignment = 1
 
-[node name="CoinsLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer" unique_id=1619951386]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 24
-text = "💰 Coins Collected: 0"
-horizontal_alignment = 1
-
-[node name="TimeLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer" unique_id=2008218056]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 18
-text = "⏱ Time Survived: 0s"
-horizontal_alignment = 1
-
 [node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer" unique_id=1199020766]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -141,7 +121,8 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_colors/font_outline_color = Color(1, 1, 1, 0)
 theme_override_font_sizes/font_size = 22
-text = "▶ PLAY AGAIN"
+text = " PLAY AGAIN"
+icon = ExtResource("3_2ysqx")
 
 [node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer/ButtonContainer" unique_id=1126076031]
 unique_name_in_owner = true
@@ -155,7 +136,8 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_colors/font_outline_color = Color(1, 1, 1, 0)
 theme_override_font_sizes/font_size = 22
-text = "← MAIN MENU"
+text = "MAIN MENU"
+icon = ExtResource("4_e54vk")
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ButtonContainer/PlayAgainButton" to="." method="_on_play_again_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ButtonContainer/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
