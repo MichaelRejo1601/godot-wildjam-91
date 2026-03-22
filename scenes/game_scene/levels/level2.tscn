@@ -17,6 +17,7 @@ chest = ExtResource("3_chest")
 game_win_scene = ExtResource("4_win")
 game_over_scene = ExtResource("5_death")
 boss_health_bar_world_offset = Vector2(0, -54)
+boss_ost_path = "res://assets/ost_2.mp3"
 boss_intro_zoom_in_factor = 1.02
 boss_intro_zoom_in_time = 0.3
 boss_intro_hold_time = 0.35
@@ -24,6 +25,13 @@ boss_intro_drop_height = 220.0
 boss_intro_drop_time = 0.65
 boss_intro_zoom_out_time = 0.35
 boss_intro_final_vertical_offset = 120.0
+boss_intro_orbit_duration = 20.0
+boss_intro_orbit_turns = 3.0
+boss_intro_orbit_radius = 30.0
+boss_intro_orbit_vertical_offset = -20.0
+boss_intro_fade_in_duration = 5.0
+boss_ost_intro_end_time = 20.0
+boss_ost_loop_end_time = 42.0
 nextLevel = ""
 
 [node name="BossHealthBar" parent="UI" parent_id_path=PackedInt32Array(2138670810) index="3" unique_id=1201514310 instance=ExtResource("7_hbar")]

@@ -6,11 +6,9 @@ const mummy = preload("res://scenes/Mummy/Mummy.tscn")
 const mummyDeath = preload("res://scenes/Mummy/MummyDeath.tscn")
 @export var dungeon_path: NodePath
 
-
-@export var minSentinalsPerRoom: int = 1
-@export var maxSentinalsPerRoom: int = 1
-@export var minMummysPerRoom: int = 1
-@export var maxMummysPerRoom: int = 1
+@export var minEnemiesPerRoom: int = 1
+@export var maxEnemiesPerRoom: int = 3
+@export_range(0.0, 1.0, 0.01) var sentinel_spawn_chance: float = 0.5
 
 var seen = {}
 
@@ -32,26 +30,41 @@ func _load_rooms() -> void:
 	if dungeon:
 		rooms = dungeon.rooms
 		for r in rooms:
-			var sentinalsInThisRoom = randi_range(minSentinalsPerRoom, maxSentinalsPerRoom)
-			var mummyInThisRoom = randi_range(minMummysPerRoom, maxMummysPerRoom)
-			# print("ThisMansentinal", sentinalsInThisRoom)
-			for s in range(sentinalsInThisRoom):
-				var sent = sentinal.instantiate()
-				sent.global_position = sand_layer.to_global(sand_layer.map_to_local(r.center()))
-				add_child(sent)
-				if player_node:
-					sent.player = player_node
-
-			for m in range(mummyInThisRoom):
-				var mum = mummy.instantiate()
-				mum.global_position = sand_layer.to_global(sand_layer.map_to_local(r.center()))
-				add_child(mum)
-				if player_node:
-					mum.player = player_node
-				mum.about_to_be_deleted.connect(_on_mummy_about_to_be_deleted)
+			var enemies_in_this_room: int = randi_range(minEnemiesPerRoom, maxEnemiesPerRoom)
+			for _i in range(enemies_in_this_room):
+				var spawn_cell := _pick_room_spawn_cell(r)
+				if randf() <= sentinel_spawn_chance:
+					var sent = sentinal.instantiate()
+					sent.global_position = sand_layer.to_global(sand_layer.map_to_local(spawn_cell))
+					add_child(sent)
+					if player_node:
+						sent.player = player_node
+				else:
+					var mum = mummy.instantiate()
+					mum.global_position = sand_layer.to_global(sand_layer.map_to_local(spawn_cell))
+					add_child(mum)
+					if player_node:
+						mum.player = player_node
+					mum.about_to_be_deleted.connect(_on_mummy_about_to_be_deleted)
 			# print("Loading Room: ", r.center())
 	else:
 		push_warning("EnemyManager: dungeon_path is not set or node not found.")
+
+
+func _pick_room_spawn_cell(room) -> Vector2i:
+	if room == null or not room.has_method("center"):
+		return Vector2i.ZERO
+	if "rect" not in room or room.rect.size == Vector2i.ZERO:
+		return room.center()
+
+	var x_min: int = room.rect.position.x
+	var x_max: int = room.rect.end.x - 1
+	var y_min: int = room.rect.position.y
+	var y_max: int = room.rect.end.y - 1
+	if x_max < x_min or y_max < y_min:
+		return room.center()
+
+	return Vector2i(randi_range(x_min, x_max), randi_range(y_min, y_max))
 
 
 func _on_mummy_about_to_be_deleted(dead_enemy: CharacterBody2D) -> void:

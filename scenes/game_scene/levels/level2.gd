@@ -20,8 +20,9 @@ const SquareArenaDungeonScene = preload("res://scenes/DungeonLevel2/DungeonLevel
 @export var boss_intro_final_vertical_offset: float = 70.0
 @export var boss_intro_orbit_duration: float = 20.0
 @export var boss_intro_orbit_turns: float = 3.0
-@export var boss_intro_orbit_radius: float = 120.0
+@export var boss_intro_orbit_radius: float = 30.0
 @export var boss_intro_orbit_vertical_offset: float = -20.0
+@export var boss_intro_fade_in_duration: float = 10.0
 @export var boss_ost_intro_end_time: float = 20.0
 @export var boss_ost_loop_end_time: float = 42.0
 
@@ -87,7 +88,13 @@ func _place_player_on_sand() -> void:
 	var chest_instance = chest.instantiate()
 	add_child(chest_instance)
 	if chest_instance is Node2D:
-		(chest_instance as Node2D).global_position = sand_layer.to_global(sand_layer.map_to_local(spawn_chest))
+		var chest_node := chest_instance as Node2D
+		chest_node.global_position = sand_layer.to_global(sand_layer.map_to_local(spawn_chest))
+		# Keep chest above sand (Dungeon is z=-1) but below player draw order.
+		if player is Node2D:
+			var player_node := player as Node2D
+			chest_node.z_index = player_node.z_index
+			move_child(chest_instance, player.get_index())
 	if chest_instance.has_signal("spawnBoss"):
 		chest_instance.spawnBoss.connect(_on_spawn_boss)
 
@@ -111,6 +118,7 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 	# Keep the bee's orbit centered above player/chest area.
 	var boss_spawn_position := intro_anchor + Vector2(0.0, boss_intro_orbit_vertical_offset)
 	boss.global_position = boss_spawn_position
+	boss.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	boss.visible = true
 	boss.process_mode = Node.PROCESS_MODE_DISABLED
 
@@ -140,6 +148,7 @@ func _finish_boss_intro() -> void:
 	var boss = get_node_or_null("Boss")
 	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
 	if boss != null and is_instance_valid(boss):
+		boss.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		boss.process_mode = Node.PROCESS_MODE_INHERIT
 		if boss_health_bar != null:
 			if boss.has_method("get"):
@@ -217,6 +226,12 @@ func _update_boss_intro_orbit(delta: float) -> void:
 	var center := _boss_intro_player.global_position + Vector2(0.0, boss_intro_orbit_vertical_offset)
 	var orbit_pos := center + Vector2.RIGHT.rotated(angle) * boss_intro_orbit_radius
 	_boss_intro_boss.global_position = orbit_pos
+
+	var fade_duration: float = maxf(boss_intro_fade_in_duration, 0.01)
+	var alpha_t: float = clampf(_boss_intro_orbit_elapsed / fade_duration, 0.0, 1.0)
+	var c: Color = _boss_intro_boss.modulate
+	c.a = alpha_t
+	_boss_intro_boss.modulate = c
 
 
 func _ensure_boss_music_player() -> void:
