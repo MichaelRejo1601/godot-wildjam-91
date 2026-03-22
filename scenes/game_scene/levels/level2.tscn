@@ -5,9 +5,11 @@
 [ext_resource type="PackedScene" uid="uid://d2drp8aj85r15" path="res://scenes/HealthBar/HealthBar.tscn" id="2_b5bn4"]
 [ext_resource type="PackedScene" uid="uid://b57gxx1017wff" path="res://scenes/Boss/Boss.tscn" id="2_c4dt5"]
 [ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_kr6wy"]
+[ext_resource type="PackedScene" uid="uid://jcr7k74w0gjx" path="res://scenes/Chest/ChestBoss.tscn" id="2_snnox"]
 
 [node name="Level2" type="Node2D" unique_id=681203316]
 script = ExtResource("1_bdaix")
+chest = ExtResource("2_snnox")
 healthBarScene = ExtResource("2_b5bn4")
 
 [node name="Boss" parent="." unique_id=291328307 node_paths=PackedStringArray("dungeon", "playerParent") instance=ExtResource("2_c4dt5")]
