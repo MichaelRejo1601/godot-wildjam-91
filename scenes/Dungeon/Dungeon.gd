@@ -38,6 +38,7 @@ const MAP_SIZE = 80
 const ROOM_MIN_SIZE = 4
 const ROOM_MAX_SIZE = 10
 const ROOM_COUNT = 12
+const OUTER_WALL_PADDING = 20
 const CHEST_ROOM_CHANCE = 0.35
 const CORRIDOR_NARROW_CHANCE = 0.2
 var rooms: Array = []
@@ -109,6 +110,10 @@ func build_walls_around_sand():
 			if sand_layer.get_cell_source_id(neighbor) == -1:
 				wall_candidates[neighbor] = true
 
+	# Fill additional outer space with walls so camera edges do not expose empty tiles.
+	for outer_cell in _get_outer_padding_wall_cells(OUTER_WALL_PADDING):
+		wall_candidates[outer_cell] = true
+
 	var wall_cells: Array[Vector2i] = []
 	for cell in wall_candidates.keys():
 		wall_cells.append(cell)
@@ -118,6 +123,25 @@ func build_walls_around_sand():
 
 	# Use terrain connect so the wall atlas picks correct edge/corner variants.
 	wall_layer.set_cells_terrain_connect(wall_cells, WALL_TERRAIN_SET, WALL_TERRAIN)
+
+
+func _get_outer_padding_wall_cells(padding: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if padding <= 0:
+		return result
+
+	var used_rect := sand_layer.get_used_rect()
+	if used_rect.size == Vector2i.ZERO:
+		return result
+
+	var expanded_rect := used_rect.grow(padding)
+	for x in range(expanded_rect.position.x, expanded_rect.end.x):
+		for y in range(expanded_rect.position.y, expanded_rect.end.y):
+			var cell := Vector2i(x, y)
+			if sand_layer.get_cell_source_id(cell) == -1:
+				result.append(cell)
+
+	return result
 
 
 func carve_room(room: Room):

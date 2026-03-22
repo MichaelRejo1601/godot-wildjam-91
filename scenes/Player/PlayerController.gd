@@ -7,9 +7,9 @@ signal coins_changed(coins: int)
 const SPEED = 70.0
 const SPRINT_MULTIPLIER = 1.75
 const SPRINT_ANIM_SPEED_SCALE = 1.35
-const MAX_HP = 1000
+const MAX_HP = 28
 const MAX_MADNESS = 14
-const MADNESS_FILL_DURATION = 60.0
+const MADNESS_FILL_DURATION = 180.0
 const PlayerShotScene = preload("res://scenes/Player/player_bullet.tscn")
 const BloodScene = preload("res://scenes/Blood/Blood.tscn")
 const DAMAGE_VIGNETTE_SHADER_CODE := """

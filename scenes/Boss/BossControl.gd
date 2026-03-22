@@ -20,8 +20,8 @@ var player: CharacterBody2D
 signal health_changed(hp: int)
 signal defeated
 
-@export var max_health: int = 80
-var current_health: int = 80
+@export var max_health: int = 42
+var current_health: int = 42
 
 var locationToGo: Vector2i = Vector2i.MAX
 var dash_direction: Vector2 = Vector2.ZERO
