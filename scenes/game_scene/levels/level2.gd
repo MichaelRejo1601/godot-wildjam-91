@@ -8,6 +8,7 @@ extends Node2D
 @export var healthBarScene : PackedScene
 @export var gameWinScreen: PackedScene
 @export var gameOver: PackedScene
+@export var boss_health_bar_world_offset: Vector2 = Vector2(0, -54)
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:	
 	# var bar = healthBarScene.instantiate()
@@ -16,6 +17,10 @@ func _ready() -> void:
 	call_deferred("_setup_health_bar")
 	call_deferred("_setup_boss_health_bar")
 	pass # Replace with function body.
+
+
+func _process(_delta: float) -> void:
+	_update_boss_health_bar_position()
 
 func _place_player_on_sand() -> void:
 	var dungeon = get_node_or_null("DungeonLevel2")
@@ -106,6 +111,10 @@ func _setup_boss_health_bar() -> void:
 	if boss == null or boss_health_bar == null:
 		push_warning("Level2: Missing Boss or BossHealthBar; cannot wire boss health UI.")
 		return
+	var boss_bar_sprite := boss_health_bar.get_node_or_null("Sprite2D") as Sprite2D
+	if boss_bar_sprite != null:
+		# Boss bar should be centered over the boss even though HUD bars may be top-left anchored.
+		boss_bar_sprite.centered = true
 
 	# Keep boss bar in a visible top-center position for this level UI.
 	boss_health_bar.position = Vector2(320, 32)
@@ -137,3 +146,14 @@ func _on_boss_defeated() -> void:
 func _on_health_bar_death() -> void:
 	SceneLoader.load_scene(gameOver.resource_path, false)
 	pass # Replace with function body.
+func _update_boss_health_bar_position() -> void:
+	var boss = get_node_or_null("Boss")
+	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
+	if boss == null or boss_health_bar == null:
+		return
+	if not boss.visible or boss.process_mode == Node.PROCESS_MODE_DISABLED:
+		return
+
+	var world_position: Vector2 = boss.global_position + boss_health_bar_world_offset
+	var screen_position: Vector2 = get_viewport().get_canvas_transform() * world_position
+	boss_health_bar.position = screen_position

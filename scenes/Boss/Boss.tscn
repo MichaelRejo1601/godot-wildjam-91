@@ -61,6 +61,14 @@ script = ExtResource("1_epoof")
 position = Vector2(-0.5, 2)
 shape = SubResource("RectangleShape2D_epoof")
 
+[node name="ContactHitbox" type="Area2D" parent="."]
+monitoring = true
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactHitbox"]
+position = Vector2(-0.5, 2)
+shape = SubResource("RectangleShape2D_epoof")
+
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=523642338]
 self_modulate = Color(0.8540607, 0.84727836, 0.25375587, 1)
 sprite_frames = SubResource("SpriteFrames_lx8rl")

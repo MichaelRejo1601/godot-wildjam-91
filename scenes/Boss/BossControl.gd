@@ -7,6 +7,7 @@ const DASH_DURATION = 0.3
 const JUMP_VELOCITY = -400.0
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var contact_hitbox: Area2D = $ContactHitbox
 const LaserBeamScene = preload("res://scenes/Sentinel/LaserBeam.tscn")
 @export var dungeon: Node2D
 
@@ -30,6 +31,9 @@ var range_attack_fired: bool = false
 @export var dashBuild: float = 2.0
 @export var laser_count: int = 3
 @export var laser_spread_degrees: float = 20.0
+@export var touch_damage: int = 1
+@export var touch_damage_cooldown: float = 0.5
+@export var touch_damage_radius: float = 34.0
 
 const DEBUG_ARROW_LENGTH := 150.0
 var debug_dirs: Array[Vector2] = []
@@ -43,6 +47,8 @@ enum BossState{
 }
 
 var currState: BossState
+var _touch_damage_targets: Dictionary = {}
+var _touch_player_cooldown_remaining: float = 0.0
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -65,6 +71,15 @@ func _ready() -> void:
 	if not floorMap:
 		push_error("Floor not defined")
 
+	if contact_hitbox != null:
+		# Use broad mask so contact damage reliably detects the player body.
+		contact_hitbox.collision_layer = 1
+		contact_hitbox.collision_mask = 0x7fffffff
+		contact_hitbox.monitoring = true
+		contact_hitbox.monitorable = true
+		contact_hitbox.body_entered.connect(_on_contact_hitbox_body_entered)
+		contact_hitbox.body_exited.connect(_on_contact_hitbox_body_exited)
+
 
 func _physics_process(delta: float) -> void:
 	if player == null or not is_instance_valid(player):
@@ -76,6 +91,8 @@ func _physics_process(delta: float) -> void:
 
 	# _update_debug_dirs()
 	checkChange(delta)
+	_apply_touch_damage_overlaps(delta)
+	_apply_touch_damage_proximity_fallback(delta)
 	move_and_slide()
 	queue_redraw()
 
@@ -224,3 +241,63 @@ func _find_player_body() -> CharacterBody2D:
 			return child as CharacterBody2D
 
 	return null
+
+
+func _on_contact_hitbox_body_entered(body: Node) -> void:
+	_try_deal_touch_damage(body)
+
+
+func _on_contact_hitbox_body_exited(body: Node) -> void:
+	if body == null:
+		return
+	_touch_damage_targets.erase(body.get_instance_id())
+
+
+func _apply_touch_damage_overlaps(delta: float) -> void:
+	if touch_damage <= 0 or contact_hitbox == null:
+		return
+
+	for key in _touch_damage_targets.keys():
+		_touch_damage_targets[key] = maxf(float(_touch_damage_targets[key]) - delta, 0.0)
+
+	for body in contact_hitbox.get_overlapping_bodies():
+		_try_deal_touch_damage(body)
+
+
+func _try_deal_touch_damage(body: Node) -> void:
+	if touch_damage <= 0:
+		return
+	if body == null:
+		return
+
+	var target: Node = body
+	if not target.has_method("take_damage") and target.get_parent() != null and target.get_parent().has_method("take_damage"):
+		target = target.get_parent()
+	if not target.has_method("take_damage"):
+		return
+	if not target.is_in_group("player") and target != player:
+		return
+
+	var instance_id := target.get_instance_id()
+	var cooldown_remaining := float(_touch_damage_targets.get(instance_id, 0.0))
+	if cooldown_remaining > 0.0:
+		return
+
+	target.take_damage(touch_damage)
+	_touch_damage_targets[instance_id] = maxf(touch_damage_cooldown, 0.05)
+
+
+func _apply_touch_damage_proximity_fallback(delta: float) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+	if touch_damage <= 0:
+		return
+
+	_touch_player_cooldown_remaining = maxf(_touch_player_cooldown_remaining - delta, 0.0)
+	if _touch_player_cooldown_remaining > 0.0:
+		return
+
+	if global_position.distance_to(player.global_position) <= touch_damage_radius:
+		if player.has_method("take_damage"):
+			player.take_damage(touch_damage)
+			_touch_player_cooldown_remaining = maxf(touch_damage_cooldown, 0.05)
