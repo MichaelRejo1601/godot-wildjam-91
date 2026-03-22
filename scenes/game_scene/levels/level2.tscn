@@ -6,11 +6,15 @@
 [ext_resource type="PackedScene" uid="uid://b57gxx1017wff" path="res://scenes/Boss/Boss.tscn" id="2_c4dt5"]
 [ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_kr6wy"]
 [ext_resource type="PackedScene" uid="uid://jcr7k74w0gjx" path="res://scenes/Chest/ChestBoss.tscn" id="2_snnox"]
+[ext_resource type="PackedScene" uid="uid://bls5wflxpelpn" path="res://scenes/game_scene/levels/GameWin.tscn" id="4_6rc7s"]
+[ext_resource type="PackedScene" path="res://scenes/windows/death_screen.tscn" id="5_vepb5"]
 
 [node name="Level2" type="Node2D" unique_id=681203316]
 script = ExtResource("1_bdaix")
 chest = ExtResource("2_snnox")
 healthBarScene = ExtResource("2_b5bn4")
+gameWinScreen = ExtResource("4_6rc7s")
+gameOver = ExtResource("5_vepb5")
 
 [node name="Boss" parent="." unique_id=291328307 node_paths=PackedStringArray("dungeon", "playerParent") instance=ExtResource("2_c4dt5")]
 z_index = 101
@@ -34,3 +38,6 @@ scale = Vector2(36, 36)
 
 [node name="HealthBar" parent="UI" unique_id=1114789225 instance=ExtResource("2_b5bn4")]
 position = Vector2(24, 564)
+
+[connection signal="defeated" from="Boss" to="." method="_on_boss_defeated"]
+[connection signal="death" from="UI/HealthBar" to="." method="_on_health_bar_death"]

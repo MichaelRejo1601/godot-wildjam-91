@@ -6,6 +6,8 @@ extends Node2D
 @export var bossSpawnCoord: Vector2i = Vector2i(2, 5)
 @export var chest: PackedScene
 @export var healthBarScene : PackedScene
+@export var gameWinScreen: PackedScene
+@export var gameOver: PackedScene
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:	
 	# var bar = healthBarScene.instantiate()
@@ -125,3 +127,13 @@ func _setup_boss_health_bar() -> void:
 
 	# Boss is spawned by chest flow, so keep bar hidden until spawn callback fires.
 	boss_health_bar.hide()
+
+
+func _on_boss_defeated() -> void:
+	SceneLoader.load_scene(gameWinScreen.resource_path, false)
+	pass # Replace with function body.
+
+
+func _on_health_bar_death() -> void:
+	SceneLoader.load_scene(gameOver.resource_path, false)
+	pass # Replace with function body.

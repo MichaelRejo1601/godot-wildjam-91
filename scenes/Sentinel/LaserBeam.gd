@@ -35,7 +35,7 @@ func _on_body_entered(body: Node) -> void:
 		elif body.get_parent() != null and body.get_parent().has_method("take_damage"):
 			body.get_parent().take_damage(damage)
 		# body.velocity += direction * knockback
-		queue_free()
+	queue_free()
 
 
 func _is_valid_damage_target(body: Node) -> bool:

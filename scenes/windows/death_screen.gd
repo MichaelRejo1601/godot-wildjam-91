@@ -47,12 +47,8 @@ func _on_play_again_button_pressed() -> void:
 	play_again_pressed.emit()
 
 	# Get the level path that was stored before loading this death screen
-	var level_path = ""
-	if get_tree().root.has_meta("last_level_path"):
-		level_path = get_tree().root.get_meta("last_level_path")
-		SceneLoader.load_scene(level_path, false)
-	else:
-		get_tree().reload_current_scene()
+	var level_path = AppConfig.game_scene_path
+	SceneLoader.load_scene(level_path, false)
 
 
 func _on_main_menu_button_pressed() -> void:
