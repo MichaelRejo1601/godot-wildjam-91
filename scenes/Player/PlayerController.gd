@@ -255,9 +255,16 @@ func _update_madness(delta: float) -> void:
 	if current_madness >= MAX_MADNESS:
 		return
 
+	# If madness was restored from a transition, ensure elapsed timer matches it
+	# so the next tick does not snap the bar back down.
+	var elapsed_ratio_from_current: float = float(current_madness) / float(MAX_MADNESS)
+	var expected_elapsed_from_current: float = elapsed_ratio_from_current * MADNESS_FILL_DURATION
+	if madness_elapsed < expected_elapsed_from_current:
+		madness_elapsed = expected_elapsed_from_current
+
 	madness_elapsed = min(madness_elapsed + delta, MADNESS_FILL_DURATION)
-	var ratio := madness_elapsed / MADNESS_FILL_DURATION
-	var next_madness := int(round(ratio * MAX_MADNESS))
+	var ratio: float = madness_elapsed / MADNESS_FILL_DURATION
+	var next_madness: int = int(round(ratio * MAX_MADNESS))
 	if next_madness == current_madness:
 		return
 

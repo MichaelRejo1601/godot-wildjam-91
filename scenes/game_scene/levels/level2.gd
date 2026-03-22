@@ -10,6 +10,7 @@ const SquareArenaDungeonScene = preload("res://scenes/DungeonLevel2/DungeonLevel
 @export var game_win_scene: PackedScene
 @export var game_over_scene: PackedScene
 @export var boss_health_bar_world_offset: Vector2 = Vector2(0, -54)
+@export_file("*.mp3") var boss_ost_path: String = "res://assets/ost_2.mp3"
 @export var boss_intro_zoom_in_factor: float = 1.02
 @export var boss_intro_zoom_in_time: float = 0.30
 @export var boss_intro_hold_time: float = 0.35
@@ -17,14 +18,26 @@ const SquareArenaDungeonScene = preload("res://scenes/DungeonLevel2/DungeonLevel
 @export var boss_intro_drop_time: float = 0.65
 @export var boss_intro_zoom_out_time: float = 0.35
 @export var boss_intro_final_vertical_offset: float = 70.0
+@export var boss_intro_orbit_duration: float = 20.0
+@export var boss_intro_orbit_turns: float = 3.0
+@export var boss_intro_orbit_radius: float = 120.0
+@export var boss_intro_orbit_vertical_offset: float = -20.0
+@export var boss_ost_intro_end_time: float = 20.0
+@export var boss_ost_loop_end_time: float = 42.0
 
 var _boss_intro_in_progress: bool = false
 var _boss_intro_watchdog_remaining: float = 0.0
 var _boss_intro_player: Node2D = null
+var _boss_intro_boss: Node2D = null
+var _boss_intro_orbit_elapsed: float = 0.0
+var _boss_intro_orbit_start_angle: float = 0.0
+var _boss_music_player: AudioStreamPlayer = null
+var _boss_music_loop_active: bool = false
 
 
 func _ready() -> void:
 	_disable_level1_runtime_nodes()
+	_ensure_boss_music_player()
 	if game_over_scene != null:
 		gameOver = game_over_scene.resource_path
 	_swap_in_square_arena_dungeon()
@@ -35,6 +48,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_update_boss_intro_orbit(_delta)
+	_update_boss_music_loop()
 	_update_boss_intro_watchdog(_delta)
 	_update_boss_health_bar_position()
 
@@ -93,8 +108,8 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 	# Always stage the intro relative to player so the bee is visible and above the action.
 	var intro_anchor := player_for_intro.global_position
 
-	# Keep the bee's landing point above the chest/player interaction area, not overlapping it.
-	var boss_spawn_position := intro_anchor + Vector2(0.0, -absf(boss_intro_final_vertical_offset))
+	# Keep the bee's orbit centered above player/chest area.
+	var boss_spawn_position := intro_anchor + Vector2(0.0, boss_intro_orbit_vertical_offset)
 	boss.global_position = boss_spawn_position
 	boss.visible = true
 	boss.process_mode = Node.PROCESS_MODE_DISABLED
@@ -105,11 +120,15 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 
 	_boss_intro_in_progress = true
 	_boss_intro_player = player_for_intro
+	_boss_intro_boss = boss
+	_boss_intro_orbit_elapsed = 0.0
+	_boss_intro_orbit_start_angle = (boss.global_position - (player_for_intro.global_position + Vector2(0.0, boss_intro_orbit_vertical_offset))).angle()
 	_boss_intro_watchdog_remaining = maxf(
-		boss_intro_drop_time + boss_intro_zoom_in_time + boss_intro_hold_time + boss_intro_zoom_out_time + 1.0,
+		boss_intro_orbit_duration + boss_intro_zoom_in_time + boss_intro_zoom_out_time + 1.5,
 		1.5
 	)
 	_set_player_controls_locked(player_for_intro, true)
+	_start_boss_music_intro()
 	await _play_boss_intro_sequence(boss, boss_spawn_position)
 	_finish_boss_intro()
 
@@ -126,8 +145,10 @@ func _finish_boss_intro() -> void:
 			if boss.has_method("get"):
 				boss_health_bar.update_health(boss.get("current_health"))
 			boss_health_bar.show()
+	_start_boss_music_loop_segment()
 
 	_boss_intro_player = null
+	_boss_intro_boss = null
 	_boss_intro_in_progress = false
 	_boss_intro_watchdog_remaining = 0.0
 
@@ -153,13 +174,8 @@ func _play_boss_intro_sequence(boss: Node2D, target_position: Vector2) -> void:
 	if player_camera != null:
 		original_zoom = player_camera.zoom
 
-	boss.global_position = target_position + Vector2(0.0, -absf(boss_intro_drop_height))
+	boss.global_position = target_position
 	boss.visible = true
-
-	var drop_tween := create_tween()
-	drop_tween.set_trans(Tween.TRANS_SINE)
-	drop_tween.set_ease(Tween.EASE_OUT)
-	drop_tween.tween_property(boss, "global_position", target_position, maxf(boss_intro_drop_time, 0.05))
 
 	var zoom_in_tween: Tween = null
 	if player_camera != null:
@@ -173,12 +189,10 @@ func _play_boss_intro_sequence(boss: Node2D, target_position: Vector2) -> void:
 			maxf(boss_intro_zoom_in_time, 0.05)
 		)
 
-	await drop_tween.finished
 	if zoom_in_tween != null:
 		await zoom_in_tween.finished
 
-	if boss_intro_hold_time > 0.0:
-		await get_tree().create_timer(boss_intro_hold_time).timeout
+	await get_tree().create_timer(maxf(boss_intro_orbit_duration, 0.01)).timeout
 
 	if player_camera != null:
 		var zoom_out_tween := create_tween()
@@ -186,6 +200,73 @@ func _play_boss_intro_sequence(boss: Node2D, target_position: Vector2) -> void:
 		zoom_out_tween.set_ease(Tween.EASE_IN_OUT)
 		zoom_out_tween.tween_property(player_camera, "zoom", original_zoom, maxf(boss_intro_zoom_out_time, 0.05))
 		await zoom_out_tween.finished
+
+
+func _update_boss_intro_orbit(delta: float) -> void:
+	if not _boss_intro_in_progress:
+		return
+	if _boss_intro_player == null or not is_instance_valid(_boss_intro_player):
+		return
+	if _boss_intro_boss == null or not is_instance_valid(_boss_intro_boss):
+		return
+
+	var duration := maxf(boss_intro_orbit_duration, 0.01)
+	_boss_intro_orbit_elapsed = min(_boss_intro_orbit_elapsed + delta, duration)
+	var t := clampf(_boss_intro_orbit_elapsed / duration, 0.0, 1.0)
+	var angle := _boss_intro_orbit_start_angle + (TAU * boss_intro_orbit_turns * t)
+	var center := _boss_intro_player.global_position + Vector2(0.0, boss_intro_orbit_vertical_offset)
+	var orbit_pos := center + Vector2.RIGHT.rotated(angle) * boss_intro_orbit_radius
+	_boss_intro_boss.global_position = orbit_pos
+
+
+func _ensure_boss_music_player() -> void:
+	if _boss_music_player != null and is_instance_valid(_boss_music_player):
+		return
+	var existing := get_node_or_null("BossMusicPlayer") as AudioStreamPlayer
+	if existing != null:
+		_boss_music_player = existing
+		return
+	_boss_music_player = AudioStreamPlayer.new()
+	_boss_music_player.name = "BossMusicPlayer"
+	add_child(_boss_music_player)
+
+
+func _start_boss_music_intro() -> void:
+	_ensure_boss_music_player()
+	if _boss_music_player == null:
+		return
+	if _boss_music_player.stream == null:
+		if not ResourceLoader.exists(boss_ost_path):
+			push_warning("Level2: Missing boss OST at path: %s" % boss_ost_path)
+			return
+		_boss_music_player.stream = load(boss_ost_path) as AudioStream
+		if _boss_music_player.stream == null:
+			push_warning("Level2: Failed loading boss OST stream: %s" % boss_ost_path)
+			return
+	_boss_music_loop_active = false
+	_boss_music_player.play(0.0)
+
+
+func _start_boss_music_loop_segment() -> void:
+	if _boss_music_player == null or _boss_music_player.stream == null:
+		return
+	_boss_music_loop_active = true
+	if _boss_music_player.get_playback_position() < boss_ost_intro_end_time:
+		_boss_music_player.seek(boss_ost_intro_end_time)
+	if not _boss_music_player.playing:
+		_boss_music_player.play()
+
+
+func _update_boss_music_loop() -> void:
+	if not _boss_music_loop_active:
+		return
+	if _boss_music_player == null or not is_instance_valid(_boss_music_player):
+		return
+	if _boss_music_player.stream == null or not _boss_music_player.playing:
+		return
+
+	if _boss_music_player.get_playback_position() >= boss_ost_loop_end_time:
+		_boss_music_player.seek(boss_ost_intro_end_time)
 
 
 func _get_level_player_body() -> Node2D:
