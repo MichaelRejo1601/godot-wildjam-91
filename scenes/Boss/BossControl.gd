@@ -40,6 +40,8 @@ var range_attack_fired: bool = false
 @export var dash_charge_duration: float = 0.24
 @export var dash_charge_stop_distance: float = 14.0
 @export var dash_head_turn_lerp_speed: float = 9.0
+@export var dash_recovery_time: float = 2.0
+@export var dash_reorient_lerp_speed: float = 10.0
 @export var machine_gun_duration: float = 0.8
 @export var machine_gun_fire_interval: float = 0.20
 @export var machine_gun_bullets_per_burst: int = 1
@@ -94,6 +96,8 @@ enum DashTelegraphPhase {
 
 var _dash_telegraph_phase: DashTelegraphPhase = DashTelegraphPhase.AIM
 var _dash_telegraph_timer: float = 0.0
+var _dash_recovery_timer: float = 0.0
+var _is_dash_recovering: bool = false
 
 
 func _intensity_scalar_safe() -> float:
@@ -240,20 +244,29 @@ func checkChange(delta: float):
 					currState = BossState.DASHATTACK
 					animated_sprite.play("default")
 		BossState.DASHATTACK:
-			velocity = _dash_charge_direction * (DASH_SPEED * _intensity_scalar_safe())
-			_face_toward_direction(_dash_charge_direction, delta)
-			dash_timer -= delta
-			_try_dash_overlap_damage(delta)
-
-			if dash_timer <= 0.0 or global_position.distance_to(_dash_locked_target_position) <= _scaled_distance(dash_charge_stop_distance):
+			if _is_dash_recovering:
 				velocity = Vector2.ZERO
-				_rapid_dash_remaining -= 1
-				if _rapid_dash_remaining > 0:
-					currState = BossState.DASHBUILDUP
-					_begin_dash_sequence()
-					_dash_telegraph_timer = _scaled_time(rapid_dash_retarget_delay, 0.01)
-				else:
+				_correct_orientation(delta)
+				_dash_recovery_timer -= delta
+				if _dash_recovery_timer <= 0.0:
+					_is_dash_recovering = false
 					currState = chooseAttack()
+			else:
+				velocity = _dash_charge_direction * (DASH_SPEED * _intensity_scalar_safe())
+				_face_toward_direction(_dash_charge_direction, delta)
+				dash_timer -= delta
+				_try_dash_overlap_damage(delta)
+
+				if dash_timer <= 0.0 or global_position.distance_to(_dash_locked_target_position) <= _scaled_distance(dash_charge_stop_distance):
+					velocity = Vector2.ZERO
+					_rapid_dash_remaining -= 1
+					if _rapid_dash_remaining > 0:
+						currState = BossState.DASHBUILDUP
+						_begin_dash_sequence()
+						_dash_telegraph_timer = _scaled_time(rapid_dash_retarget_delay, 0.01)
+					else:
+						_is_dash_recovering = true
+						_dash_recovery_timer = _scaled_time(dash_recovery_time, 0.1)
 		BossState.MACHINEGUN:
 			animated_sprite.pause()
 			velocity = Vector2.ZERO
@@ -383,6 +396,10 @@ func _face_toward_direction(direction: Vector2, delta: float) -> void:
 		return
 	var target_rotation := direction.angle() + PI * 0.5
 	rotation = lerp_angle(rotation, target_rotation, clampf(dash_head_turn_lerp_speed * delta, 0.0, 1.0))
+
+
+func _correct_orientation(delta: float) -> void:
+	rotation = lerp_angle(rotation, 0.0, clampf(dash_reorient_lerp_speed * delta, 0.0, 1.0))
 
 
 func take_damage(amount: int = 1, _hit_direction: Vector2 = Vector2.ZERO, _hit_force: float = -1.0) -> void:
