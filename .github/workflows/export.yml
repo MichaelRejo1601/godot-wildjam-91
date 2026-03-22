@@ -1,0 +1,79 @@
+name: Export Godot Project
+
+on:
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.6"
+  PROJECT_NAME: "DeathBelow"
+
+jobs:
+  export:
+    name: Export for ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Windows
+            preset: "Windows Desktop"
+            artifact: windows
+            out_dir: build/windows
+            out_file: DeathBelow.exe
+          - platform: Linux
+            preset: "Linux/X11"
+            artifact: linux
+            out_dir: build/linux
+            out_file: DeathBelow.x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binary and export templates
+        uses: actions/cache@v4
+        id: cache-godot
+        with:
+          path: |
+            ~/.local/share/godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot-bin
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" \
+            -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot-extract
+          mv "/tmp/godot-extract/Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/.local/share/godot-bin/godot
+          chmod +x ~/.local/share/godot-bin/godot
+
+      - name: Install export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" \
+            -O /tmp/templates.tpz
+          unzip -q /tmp/templates.tpz -d /tmp/templates-extract
+          mv /tmp/templates-extract/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Add Godot to PATH
+        run: echo "$HOME/.local/share/godot-bin" >> $GITHUB_PATH
+
+      - name: Import project assets
+        run: godot --headless --import || true
+
+      - name: Create build directory
+        run: mkdir -p ${{ matrix.out_dir }}
+
+      - name: Export ${{ matrix.platform }}
+        run: godot --headless --export-release "${{ matrix.preset }}" "${{ matrix.out_dir }}/${{ matrix.out_file }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.out_dir }}/
