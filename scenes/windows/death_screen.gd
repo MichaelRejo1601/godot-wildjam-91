@@ -9,9 +9,6 @@ signal main_menu_pressed
 
 
 func _ready() -> void:
-	# Make sure the death screen is on top
-	z_index = 9999
-
 	# Get the player to retrieve coins collected
 	var player = _get_player()
 
