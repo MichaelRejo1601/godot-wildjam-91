@@ -17,6 +17,7 @@ func _ready() -> void:
 	print("Test level loaded: spawning test objects")
 	# Defer so Dungeon._ready() has generated the tilemap before we query sand cells.
 	call_deferred("_place_player_on_sand")
+	call_deferred("_setup_bullet_bar")
 	call_deferred("_setup_health_bar")
 	call_deferred("_setup_madness_bar")
 	call_deferred("_setup_coin_bar")
@@ -77,6 +78,25 @@ func _setup_health_bar() -> void:
 		health_bar.set_max_health(int(player.get_max_health()))
 
 	health_bar.update_health(player.current_health)
+
+
+func _setup_bullet_bar() -> void:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		player = get_node_or_null("Player/CharacterBody2D")
+	var bullet_bar = get_node_or_null("UI/BulletBar")
+	if player == null or bullet_bar == null:
+		push_warning("TestLevel: Missing Player or BulletBar; cannot wire bullet UI.")
+		return
+
+	if player.has_signal("bullets_changed"):
+		player.bullets_changed.connect(Callable(bullet_bar, "update_bullets"))
+
+	if bullet_bar.has_method("set_max_bullets") and player.has_method("get_max_bullets"):
+		bullet_bar.set_max_bullets(int(player.get_max_bullets()))
+
+	if bullet_bar.has_method("update_bullets") and player.has_method("get"):
+		bullet_bar.update_bullets(int(player.get("current_bullets")))
 
 
 func _setup_madness_bar() -> void:
@@ -163,3 +183,4 @@ func _store_player_runtime_stats_for_transition() -> void:
 		root.set_meta("transition_player_health", int(player.get("current_health")))
 		root.set_meta("transition_player_madness", int(player.get("current_madness")))
 		root.set_meta("transition_player_coins", int(player.get("current_coins")))
+		root.set_meta("transition_player_bullets", int(player.get("current_bullets")))

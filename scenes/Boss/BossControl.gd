@@ -49,6 +49,13 @@ var range_attack_fired: bool = false
 @export var machine_gun_spin_speed_degrees: float = 28.0
 @export var machine_gun_bullet_speed: float = 170.0
 @export var machine_gun_bullet_lifetime: float = 4.5
+@export var triple_spread_rounds: int = 3
+@export var triple_spread_bullets_per_round: int = 3
+@export var triple_spread_interval: float = 0.18
+@export var triple_spread_spread_degrees: float = 18.0
+@export var triple_spread_bullet_speed: float = 185.0
+@export var triple_spread_bullet_lifetime: float = 3.8
+@export var triple_spread_recovery: float = 0.45
 @export var radial_burst_projectiles: int = 7
 @export var radial_burst_bullet_speed: float = 155.0
 @export var radial_burst_recovery: float = 0.7
@@ -73,6 +80,7 @@ enum BossState{
 	DASHBUILDUP,
 	DASHATTACK,
 	MACHINEGUN,
+	TRIPLESPREAD,
 	RANGEATTACK,
 	ROAMAROUND
 }
@@ -83,6 +91,9 @@ var _rapid_dash_remaining: int = 0
 var _machine_gun_time_remaining: float = 0.0
 var _machine_gun_fire_timer: float = 0.0
 var _machine_gun_angle: float = 0.0
+var _triple_spread_rounds_remaining: int = 0
+var _triple_spread_fire_timer: float = 0.0
+var _triple_spread_recovery_timer: float = 0.0
 var _range_attack_recovery_timer: float = 0.0
 var _passive_fire_timer: float = 0.0
 var _body_hit_cooldown_remaining: float = 0.0
@@ -193,6 +204,14 @@ func _update_debug_dirs() -> void:
 				var angle := _machine_gun_angle + deg_to_rad(center_offset * (machine_gun_burst_spread_degrees * _intensity_scalar_safe()))
 				debug_dirs.append(Vector2.from_angle(angle))
 				debug_colors.append(Color.ORANGE)
+		BossState.TRIPLESPREAD:
+			var debug_triple_count: int = max(triple_spread_bullets_per_round, 1)
+			var base_angle := global_position.direction_to(player.global_position).angle()
+			for i in range(min(debug_triple_count, 12)):
+				var center_offset: float = (float(i) - (float(debug_triple_count - 1) * 0.5))
+				var angle := base_angle + deg_to_rad(center_offset * (triple_spread_spread_degrees * _intensity_scalar_safe()))
+				debug_dirs.append(Vector2.from_angle(angle))
+				debug_colors.append(Color.SKY_BLUE)
 		BossState.ROAMAROUND:
 			if locationToGo != Vector2i.MAX and floorMap:
 				var target_pos := floorMap.to_global(floorMap.map_to_local(locationToGo))
@@ -279,6 +298,20 @@ func checkChange(delta: float):
 			if _machine_gun_time_remaining <= 0.0:
 				animated_sprite.play("default")
 				currState = chooseAttack()
+		BossState.TRIPLESPREAD:
+			animated_sprite.pause()
+			velocity = Vector2.ZERO
+			if _triple_spread_rounds_remaining > 0:
+				_triple_spread_fire_timer -= delta
+				if _triple_spread_fire_timer <= 0.0:
+					_fire_triple_spread_round()
+					_triple_spread_rounds_remaining -= 1
+					_triple_spread_fire_timer = _scaled_time(triple_spread_interval, 0.03)
+			else:
+				_triple_spread_recovery_timer -= delta
+				if _triple_spread_recovery_timer <= 0.0:
+					animated_sprite.play("default")
+					currState = chooseAttack()
 		BossState.RANGEATTACK:
 			animated_sprite.pause()
 			velocity = Vector2.ZERO
@@ -322,6 +355,16 @@ func _fire_machine_gun_burst() -> void:
 		)
 
 
+func _fire_triple_spread_round() -> void:
+	var spread_count: int = max(triple_spread_bullets_per_round, 1)
+	_fire_aimed_spread(
+		spread_count,
+		triple_spread_spread_degrees * _intensity_scalar_safe(),
+		triple_spread_bullet_speed * _intensity_scalar_safe(),
+		triple_spread_bullet_lifetime * _intensity_scalar_safe()
+	)
+
+
 func _fire_radial_burst() -> void:
 	var count: int = _scaled_count(radial_burst_projectiles)
 	for i in range(count):
@@ -358,15 +401,20 @@ func _fire_aimed_spread(count: int, spread_degrees: float, speed_override: float
 
 func chooseAttack() -> BossState:
 	var roll := randf()
-	if roll < 0.45:
+	if roll < 0.40:
 		_rapid_dash_remaining = _scaled_count(rapid_dash_count)
 		_begin_dash_sequence()
 		return BossState.DASHBUILDUP
-	if roll < 0.90:
+	if roll < 0.72:
 		_machine_gun_time_remaining = _scaled_time(machine_gun_duration, 0.2)
 		_machine_gun_fire_timer = 0.0
 		_machine_gun_angle = global_position.direction_to(player.global_position).angle()
 		return BossState.MACHINEGUN
+	if roll < 0.90:
+		_triple_spread_rounds_remaining = max(triple_spread_rounds, 1)
+		_triple_spread_fire_timer = 0.0
+		_triple_spread_recovery_timer = _scaled_time(triple_spread_recovery, 0.05)
+		return BossState.TRIPLESPREAD
 	range_attack_fired = false
 	_range_attack_recovery_timer = 0.0
 	return BossState.RANGEATTACK

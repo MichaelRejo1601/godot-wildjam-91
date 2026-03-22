@@ -3,6 +3,7 @@ extends CharacterBody2D
 signal health_changed(hp: int)
 signal madness_changed(madness: int)
 signal coins_changed(coins: int)
+signal bullets_changed(bullets: int)
 
 const SPEED = 70.0
 const SPRINT_MULTIPLIER = 1.75
@@ -111,6 +112,8 @@ const ATTACK_COOLDOWN_TIME = 1.0
 @onready var whip_hitbox: Area2D = $WhipHitbox
 @export var gun_fire_cooldown: float = 0.18
 @export var gun_damage: int = 1
+@export var max_bullets: int = 9
+@export var bullet_recharge_time: float = 2.0
 @export var gun_screen_shake_amount: float = 3.0
 @export var gun_screen_shake_duration: float = 0.08
 @export var shovel_forward_offset: float = 3.0
@@ -148,6 +151,8 @@ var _attack_virtual_mouse_active: bool = false
 var _attack_virtual_mouse_position: Vector2 = Vector2.ZERO
 var _attack_virtual_mouse_radius: float = 0.0
 var _attack_virtual_mouse_tween: Tween
+var current_bullets: int = 9
+var bullet_recharge_elapsed: float = 0.0
 
 
 func _ready() -> void:
@@ -164,6 +169,8 @@ func _ready() -> void:
 	health_changed.emit(current_health)
 	madness_changed.emit(current_madness)
 	coins_changed.emit(current_coins)
+	current_bullets = max(max_bullets, 1)
+	bullets_changed.emit(current_bullets)
 	update_animation(Vector2.ZERO, false)
 	
 	# Connect whip hitbox signal
@@ -174,6 +181,7 @@ func _ready() -> void:
 
 func _physics_process(_delta: float) -> void:
 	_update_madness(_delta)
+	_update_bullet_recharge(_delta)
 	update_lantern_enabled_state()
 	update_lantern_held_state()
 	_update_hand_positions()
@@ -571,8 +579,8 @@ func _get_effective_mouse_position() -> Vector2:
 
 
 func fire_gun() -> void:
-	attack_cooldown = gun_fire_cooldown
-	_play_gun_screen_shake()
+	if current_bullets <= 0:
+		return
 
 	if gun_item == null:
 		return
@@ -580,6 +588,11 @@ func fire_gun() -> void:
 	var to_mouse: Vector2 = get_global_mouse_position() - gun_item.global_position
 	if to_mouse.length_squared() <= 0.0:
 		return
+
+	attack_cooldown = gun_fire_cooldown
+	_play_gun_screen_shake()
+	current_bullets = max(current_bullets - 1, 0)
+	bullets_changed.emit(current_bullets)
 
 	var bullet_direction: Vector2 = to_mouse.normalized()
 	var shot := PlayerShotScene.instantiate()
@@ -606,6 +619,26 @@ func _play_gun_screen_shake() -> void:
 	gun_shake_tween.tween_property(camera, "offset", shake_vec, gun_screen_shake_duration * 0.25)
 	gun_shake_tween.tween_property(camera, "offset", -shake_vec, gun_screen_shake_duration * 0.25)
 	gun_shake_tween.tween_property(camera, "offset", Vector2.ZERO, gun_screen_shake_duration * 0.5)
+
+
+func _update_bullet_recharge(delta: float) -> void:
+	var ammo_cap: int = max(max_bullets, 1)
+	if current_bullets >= ammo_cap:
+		bullet_recharge_elapsed = 0.0
+		return
+
+	var recharge_interval: float = maxf(bullet_recharge_time, 0.01)
+	bullet_recharge_elapsed += delta
+	if bullet_recharge_elapsed < recharge_interval:
+		return
+
+	var recovered: int = int(floor(bullet_recharge_elapsed / recharge_interval))
+	if recovered <= 0:
+		return
+
+	bullet_recharge_elapsed -= float(recovered) * recharge_interval
+	current_bullets = min(current_bullets + recovered, ammo_cap)
+	bullets_changed.emit(current_bullets)
 
 
 func _on_whip_hitbox_body_entered(body: Node2D) -> void:
@@ -730,6 +763,10 @@ func _cycle_held_item() -> void:
 
 func get_madness_ratio() -> float:
 	return clamp(float(current_madness) / float(MAX_MADNESS), 0.0, 1.0)
+
+
+func get_max_bullets() -> int:
+	return max(max_bullets, 1)
 
 
 func _update_held_item_visuals() -> void:

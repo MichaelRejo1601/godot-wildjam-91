@@ -10,6 +10,17 @@ const SquareArenaDungeonScene = preload("res://scenes/DungeonLevel2/DungeonLevel
 @export var game_win_scene: PackedScene
 @export var game_over_scene: PackedScene
 @export var boss_health_bar_world_offset: Vector2 = Vector2(0, -54)
+@export var boss_intro_zoom_in_factor: float = 1.02
+@export var boss_intro_zoom_in_time: float = 0.30
+@export var boss_intro_hold_time: float = 0.35
+@export var boss_intro_drop_height: float = 220.0
+@export var boss_intro_drop_time: float = 0.65
+@export var boss_intro_zoom_out_time: float = 0.35
+@export var boss_intro_final_vertical_offset: float = 70.0
+
+var _boss_intro_in_progress: bool = false
+var _boss_intro_watchdog_remaining: float = 0.0
+var _boss_intro_player: Node2D = null
 
 
 func _ready() -> void:
@@ -24,6 +35,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_update_boss_intro_watchdog(_delta)
 	_update_boss_health_bar_position()
 
 
@@ -66,21 +78,136 @@ func _place_player_on_sand() -> void:
 
 
 func _on_spawn_boss(_pos: Vector2) -> void:
+	if _boss_intro_in_progress:
+		return
+
 	var boss = get_node_or_null("Boss")
 	var sand_layer := _get_level2_sand_layer()
 	if sand_layer == null or not is_instance_valid(sand_layer) or boss == null:
 		return
 
-	var boss_cell: Vector2i = _get_arena_center_cell(sand_layer)
-	boss.global_position = sand_layer.to_global(sand_layer.map_to_local(boss_cell))
+	var player_for_intro := _get_level_player_body()
+	if player_for_intro == null or not is_instance_valid(player_for_intro):
+		return
+
+	# Always stage the intro relative to player so the bee is visible and above the action.
+	var intro_anchor := player_for_intro.global_position
+
+	# Keep the bee's landing point above the chest/player interaction area, not overlapping it.
+	var boss_spawn_position := intro_anchor + Vector2(0.0, -absf(boss_intro_final_vertical_offset))
+	boss.global_position = boss_spawn_position
 	boss.visible = true
-	boss.process_mode = Node.PROCESS_MODE_INHERIT
+	boss.process_mode = Node.PROCESS_MODE_DISABLED
 
 	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
 	if boss_health_bar != null:
-		if boss.has_method("get"):
-			boss_health_bar.update_health(boss.get("current_health"))
-		boss_health_bar.show()
+		boss_health_bar.hide()
+
+	_boss_intro_in_progress = true
+	_boss_intro_player = player_for_intro
+	_boss_intro_watchdog_remaining = maxf(
+		boss_intro_drop_time + boss_intro_zoom_in_time + boss_intro_hold_time + boss_intro_zoom_out_time + 1.0,
+		1.5
+	)
+	_set_player_controls_locked(player_for_intro, true)
+	await _play_boss_intro_sequence(boss, boss_spawn_position)
+	_finish_boss_intro()
+
+
+func _finish_boss_intro() -> void:
+	if _boss_intro_player != null and is_instance_valid(_boss_intro_player):
+		_set_player_controls_locked(_boss_intro_player, false)
+
+	var boss = get_node_or_null("Boss")
+	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
+	if boss != null and is_instance_valid(boss):
+		boss.process_mode = Node.PROCESS_MODE_INHERIT
+		if boss_health_bar != null:
+			if boss.has_method("get"):
+				boss_health_bar.update_health(boss.get("current_health"))
+			boss_health_bar.show()
+
+	_boss_intro_player = null
+	_boss_intro_in_progress = false
+	_boss_intro_watchdog_remaining = 0.0
+
+
+func _update_boss_intro_watchdog(delta: float) -> void:
+	if not _boss_intro_in_progress:
+		return
+	_boss_intro_watchdog_remaining -= delta
+	if _boss_intro_watchdog_remaining > 0.0:
+		return
+	# Emergency fallback: never allow intro flow to soft-lock player controls.
+	_finish_boss_intro()
+
+
+func _play_boss_intro_sequence(boss: Node2D, target_position: Vector2) -> void:
+	if boss == null or not is_instance_valid(boss):
+		return
+
+	var player := _get_level_player_body()
+	var player_camera := _get_player_camera(player)
+	var original_zoom := Vector2.ONE
+
+	if player_camera != null:
+		original_zoom = player_camera.zoom
+
+	boss.global_position = target_position + Vector2(0.0, -absf(boss_intro_drop_height))
+	boss.visible = true
+
+	var drop_tween := create_tween()
+	drop_tween.set_trans(Tween.TRANS_SINE)
+	drop_tween.set_ease(Tween.EASE_OUT)
+	drop_tween.tween_property(boss, "global_position", target_position, maxf(boss_intro_drop_time, 0.05))
+
+	var zoom_in_tween: Tween = null
+	if player_camera != null:
+		zoom_in_tween = create_tween()
+		zoom_in_tween.set_trans(Tween.TRANS_SINE)
+		zoom_in_tween.set_ease(Tween.EASE_OUT)
+		zoom_in_tween.tween_property(
+			player_camera,
+			"zoom",
+			original_zoom * boss_intro_zoom_in_factor,
+			maxf(boss_intro_zoom_in_time, 0.05)
+		)
+
+	await drop_tween.finished
+	if zoom_in_tween != null:
+		await zoom_in_tween.finished
+
+	if boss_intro_hold_time > 0.0:
+		await get_tree().create_timer(boss_intro_hold_time).timeout
+
+	if player_camera != null:
+		var zoom_out_tween := create_tween()
+		zoom_out_tween.set_trans(Tween.TRANS_SINE)
+		zoom_out_tween.set_ease(Tween.EASE_IN_OUT)
+		zoom_out_tween.tween_property(player_camera, "zoom", original_zoom, maxf(boss_intro_zoom_out_time, 0.05))
+		await zoom_out_tween.finished
+
+
+func _get_level_player_body() -> Node2D:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		player = get_node_or_null("Player/CharacterBody2D")
+	if player is Node2D:
+		return player as Node2D
+	return null
+
+
+func _get_player_camera(player: Node2D) -> Camera2D:
+	if player == null:
+		return null
+	return player.get_node_or_null("Camera2D") as Camera2D
+
+
+func _set_player_controls_locked(player: Node2D, locked: bool) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+	if player.has_method("set_controls_locked"):
+		player.set_controls_locked(locked)
 
 
 func _setup_exit_door() -> void:
@@ -201,6 +328,8 @@ func _restore_transition_player_stats() -> void:
 		player.current_madness = int(root.get_meta("transition_player_madness"))
 	if root.has_meta("transition_player_coins"):
 		player.current_coins = int(root.get_meta("transition_player_coins"))
+	if root.has_meta("transition_player_bullets"):
+		player.current_bullets = int(root.get_meta("transition_player_bullets"))
 
 	if player.has_signal("health_changed"):
 		player.health_changed.emit(player.current_health)
@@ -208,6 +337,8 @@ func _restore_transition_player_stats() -> void:
 		player.madness_changed.emit(player.current_madness)
 	if player.has_signal("coins_changed"):
 		player.coins_changed.emit(player.current_coins)
+	if player.has_signal("bullets_changed"):
+		player.bullets_changed.emit(player.current_bullets)
 
 	if player.has_method("update_lantern_from_health"):
 		player.update_lantern_from_health()
@@ -217,3 +348,4 @@ func _restore_transition_player_stats() -> void:
 	root.remove_meta("transition_player_health")
 	root.remove_meta("transition_player_madness")
 	root.remove_meta("transition_player_coins")
+	root.remove_meta("transition_player_bullets")

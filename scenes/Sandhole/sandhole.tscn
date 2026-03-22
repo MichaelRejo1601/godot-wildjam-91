@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dgg2dmvjt4615"]
 
 [ext_resource type="Texture2D" uid="uid://b1fos7lt3iudd" path="res://assets/floor/sandworm.png" id="1_07sj7"]
-[ext_resource type="Script" path="res://scenes/Sandhole/sandhole.gd" id="2_sandh"]
+[ext_resource type="Script" uid="uid://bev1irrm3774m" path="res://scenes/Sandhole/sandhole.gd" id="2_sandh"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5s5j8"]
 atlas = ExtResource("1_07sj7")

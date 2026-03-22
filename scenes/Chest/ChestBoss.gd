@@ -74,7 +74,6 @@ func _handle_interact() -> void:
 	if current_player != null and is_instance_valid(current_player):
 		pass
 	spawnBoss.emit(global_position)
-	queue_free()
 
 
 func _get_mimic_chance_from_madness() -> float:
