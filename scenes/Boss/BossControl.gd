@@ -59,17 +59,8 @@ func _ready() -> void:
 	player = _find_player_body()
 	if player == null:
 		push_warning("Boss: Player is null.")
-	for child in dungeon.get_children():
-		print("Child", child)
-		if child is TileMapLayer:
-			if child.name.contains("Wall"):
-				obstacles = child
-			elif child.name.contains("Sand"):
-				floorMap = child
-	if not obstacles:
-		push_error("Obstacle not defined", obstacles)
-	if not floorMap:
-		push_error("Floor not defined")
+	if not _refresh_dungeon_layers():
+		push_warning("Boss: Dungeon layers not available yet; will retry.")
 
 	if contact_hitbox != null:
 		# Use broad mask so contact damage reliably detects the player body.
@@ -88,6 +79,11 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			move_and_slide()
 			return
+
+	if not _refresh_dungeon_layers():
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
 
 	# _update_debug_dirs()
 	checkChange(delta)
@@ -171,6 +167,9 @@ func checkChange(delta: float):
 				range_attack_fired = false
 				currState = BossState.ROAMAROUND
 		BossState.ROAMAROUND:
+			if not _refresh_dungeon_layers():
+				velocity = Vector2.ZERO
+				return
 			if locationToGo == Vector2i.MAX:
 				var sand_cells = floorMap.get_used_cells()
 				var wall_cells = obstacles.get_used_cells()
@@ -301,3 +300,33 @@ func _apply_touch_damage_proximity_fallback(delta: float) -> void:
 		if player.has_method("take_damage"):
 			player.take_damage(touch_damage)
 			_touch_player_cooldown_remaining = maxf(touch_damage_cooldown, 0.05)
+
+
+func _refresh_dungeon_layers() -> bool:
+	if dungeon == null or not is_instance_valid(dungeon):
+		var parent_node := get_parent()
+		if parent_node != null:
+			dungeon = parent_node.get_node_or_null("Dungeon") as Node2D
+
+	if dungeon == null or not is_instance_valid(dungeon):
+		obstacles = null
+		floorMap = null
+		return false
+
+	if floorMap == null or not is_instance_valid(floorMap):
+		floorMap = dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer
+		if floorMap == null:
+			for child in dungeon.get_children():
+				if child is TileMapLayer and child.name.contains("Sand"):
+					floorMap = child as TileMapLayer
+					break
+
+	if obstacles == null or not is_instance_valid(obstacles):
+		obstacles = dungeon.get_node_or_null("WallTileMapLayer") as TileMapLayer
+		if obstacles == null:
+			for child in dungeon.get_children():
+				if child is TileMapLayer and child.name.contains("Wall"):
+					obstacles = child as TileMapLayer
+					break
+
+	return floorMap != null and obstacles != null

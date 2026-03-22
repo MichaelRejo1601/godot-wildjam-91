@@ -1,5 +1,7 @@
 extends "res://scenes/game_scene/levels/test_level.gd"
 
+const SquareArenaDungeonScene = preload("res://scenes/DungeonLevel2/DungeonLevel2.tscn")
+
 
 @export var playerCoord: Vector2i = Vector2i(2, 5)
 @export var chestCoord: Vector2i = Vector2i(10, 5)
@@ -11,15 +13,13 @@ extends "res://scenes/game_scene/levels/test_level.gd"
 
 
 func _ready() -> void:
-	# Keep shared level lifecycle metadata and editor cleanup from level 1.
-	get_tree().root.set_meta("level_start_time", Time.get_ticks_msec())
+	_disable_level1_runtime_nodes()
 	if game_over_scene != null:
 		gameOver = game_over_scene.resource_path
-	_clear_editor_placed_entities()
-	call_deferred("_place_player_on_sand")
-	call_deferred("_setup_health_bar")
-	call_deferred("_setup_madness_bar")
-	call_deferred("_setup_coin_bar")
+	_swap_in_square_arena_dungeon()
+	# Reuse base level setup so shared UI and environment logic stay unified.
+	super._ready()
+	call_deferred("_restore_transition_player_stats")
 	call_deferred("_setup_boss_health_bar")
 
 
@@ -31,7 +31,7 @@ func _place_player_on_sand() -> void:
 	var player = get_node_or_null("Player")
 	var boss = get_node_or_null("Boss")
 	var sand_layer := _get_level2_sand_layer()
-	if sand_layer == null or player == null:
+	if sand_layer == null or not is_instance_valid(sand_layer) or player == null:
 		push_warning("Level2: Missing Dungeon or Player node; cannot place player on sand.")
 		return
 
@@ -56,7 +56,7 @@ func _place_player_on_sand() -> void:
 		push_warning("Level2: Missing chest scene; boss spawn sequence will not start.")
 		return
 
-	var spawn_chest: Vector2i = chestCoord
+	var spawn_chest: Vector2i = _get_arena_center_cell(sand_layer)
 	var chest_instance = chest.instantiate()
 	add_child(chest_instance)
 	if chest_instance is Node2D:
@@ -68,10 +68,11 @@ func _place_player_on_sand() -> void:
 func _on_spawn_boss(_pos: Vector2) -> void:
 	var boss = get_node_or_null("Boss")
 	var sand_layer := _get_level2_sand_layer()
-	if sand_layer == null or boss == null:
+	if sand_layer == null or not is_instance_valid(sand_layer) or boss == null:
 		return
 
-	boss.global_position = sand_layer.to_global(sand_layer.map_to_local(bossSpawnCoord))
+	var boss_cell: Vector2i = _get_arena_center_cell(sand_layer)
+	boss.global_position = sand_layer.to_global(sand_layer.map_to_local(boss_cell))
 	boss.visible = true
 	boss.process_mode = Node.PROCESS_MODE_INHERIT
 
@@ -80,6 +81,11 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 		if boss.has_method("get"):
 			boss_health_bar.update_health(boss.get("current_health"))
 		boss_health_bar.show()
+
+
+func _setup_exit_door() -> void:
+	# Level 2 progression is boss-defeat based, not exit-door based.
+	return
 
 
 func _setup_boss_health_bar() -> void:
@@ -138,3 +144,76 @@ func _get_level2_sand_layer() -> TileMapLayer:
 	if dungeon == null:
 		return null
 	return dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer
+
+
+func _get_arena_center_cell(sand_layer: TileMapLayer) -> Vector2i:
+	if sand_layer == null or not is_instance_valid(sand_layer):
+		return Vector2i.ZERO
+	var used_rect := sand_layer.get_used_rect()
+	if used_rect.size == Vector2i.ZERO:
+		return Vector2i.ZERO
+	var half_size := Vector2i(
+		int(floor(float(used_rect.size.x) * 0.5)),
+		int(floor(float(used_rect.size.y) * 0.5))
+	)
+	return used_rect.position + half_size
+
+
+func _disable_level1_runtime_nodes() -> void:
+	# Prevent inherited level-1 combat loop from running in boss level.
+	var enemy_manager = get_node_or_null("EnemyManager")
+	if enemy_manager != null:
+		enemy_manager.queue_free()
+
+
+func _swap_in_square_arena_dungeon() -> void:
+	var old_dungeon = get_node_or_null("Dungeon")
+	if old_dungeon != null:
+		# Prevent path ambiguity while queued for deletion.
+		old_dungeon.name = "DungeonOld"
+		old_dungeon.queue_free()
+
+	var new_dungeon = SquareArenaDungeonScene.instantiate()
+	new_dungeon.name = "Dungeon"
+	if new_dungeon.has_method("set"):
+		new_dungeon.set("rectangleW", 40)
+		new_dungeon.set("rectangleH", 40)
+	if new_dungeon is Node2D:
+		(new_dungeon as Node2D).z_index = -1
+	add_child(new_dungeon)
+	move_child(new_dungeon, 0)
+
+
+func _restore_transition_player_stats() -> void:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		player = get_node_or_null("Player/CharacterBody2D")
+	if player == null:
+		return
+
+	var root = get_tree().root
+	if root == null:
+		return
+
+	if root.has_meta("transition_player_health"):
+		player.current_health = int(root.get_meta("transition_player_health"))
+	if root.has_meta("transition_player_madness"):
+		player.current_madness = int(root.get_meta("transition_player_madness"))
+	if root.has_meta("transition_player_coins"):
+		player.current_coins = int(root.get_meta("transition_player_coins"))
+
+	if player.has_signal("health_changed"):
+		player.health_changed.emit(player.current_health)
+	if player.has_signal("madness_changed"):
+		player.madness_changed.emit(player.current_madness)
+	if player.has_signal("coins_changed"):
+		player.coins_changed.emit(player.current_coins)
+
+	if player.has_method("update_lantern_from_health"):
+		player.update_lantern_from_health()
+	if player.has_method("update_lantern_from_madness"):
+		player.update_lantern_from_madness()
+
+	root.remove_meta("transition_player_health")
+	root.remove_meta("transition_player_madness")
+	root.remove_meta("transition_player_coins")

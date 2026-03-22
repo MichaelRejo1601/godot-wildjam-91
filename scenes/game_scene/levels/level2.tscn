@@ -1,50 +1,32 @@
 [gd_scene format=3 uid="uid://df2isiawpy4u6"]
 
-[ext_resource type="Script" uid="uid://t0odlhkioepb" path="res://scenes/game_scene/levels/level2.gd" id="1_bdaix"]
-[ext_resource type="PackedScene" uid="uid://wpqx11cocj0p" path="res://scenes/DungeonLevel2/DungeonLevel2.tscn" id="1_c50jq"]
-[ext_resource type="PackedScene" uid="uid://d2drp8aj85r15" path="res://scenes/HealthBar/HealthBar.tscn" id="2_b5bn4"]
-[ext_resource type="PackedScene" uid="uid://b57gxx1017wff" path="res://scenes/Boss/Boss.tscn" id="2_c4dt5"]
-[ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_kr6wy"]
-[ext_resource type="PackedScene" path="res://scenes/Chest/ChestBoss.tscn" id="2_snnox"]
-[ext_resource type="PackedScene" uid="uid://bls5wflxpelpn" path="res://scenes/game_scene/levels/GameWin.tscn" id="4_6rc7s"]
-[ext_resource type="PackedScene" path="res://scenes/windows/death_screen.tscn" id="5_vepb5"]
-[ext_resource type="PackedScene" path="res://scenes/MadnessBar/MadnessBar.tscn" id="6_mbar"]
-[ext_resource type="PackedScene" uid="uid://blqwsrvg56wi2" path="res://scenes/CoinBar/CoinBar.tscn" id="7_cbar"]
+[ext_resource type="PackedScene" uid="uid://bqtwc28e47fci" path="res://scenes/game_scene/levels/test_level.tscn" id="1_parent"]
+[ext_resource type="Script" uid="uid://t0odlhkioepb" path="res://scenes/game_scene/levels/level2.gd" id="2_script"]
+[ext_resource type="PackedScene" path="res://scenes/Chest/ChestBoss.tscn" id="3_chest"]
+[ext_resource type="PackedScene" uid="uid://bls5wflxpelpn" path="res://scenes/game_scene/levels/GameWin.tscn" id="4_win"]
+[ext_resource type="PackedScene" path="res://scenes/windows/death_screen.tscn" id="5_death"]
+[ext_resource type="PackedScene" uid="uid://b57gxx1017wff" path="res://scenes/Boss/Boss.tscn" id="6_boss"]
+[ext_resource type="PackedScene" uid="uid://d2drp8aj85r15" path="res://scenes/HealthBar/HealthBar.tscn" id="7_hbar"]
 
-[node name="Level2" type="Node2D" unique_id=681203316]
-script = ExtResource("1_bdaix")
-chest = ExtResource("2_snnox")
-game_win_scene = ExtResource("4_6rc7s")
-game_over_scene = ExtResource("5_vepb5")
+[node name="TestLevel" unique_id=1628842958 instance=ExtResource("1_parent")]
+script = ExtResource("2_script")
+playerCoord = Vector2i(2, 5)
+chestCoord = Vector2i(10, 5)
+bossSpawnCoord = Vector2i(2, 5)
+chest = ExtResource("3_chest")
+game_win_scene = ExtResource("4_win")
+game_over_scene = ExtResource("5_death")
+boss_health_bar_world_offset = Vector2(0, -54)
+nextLevel = ""
 
-[node name="Boss" parent="." unique_id=291328307 node_paths=PackedStringArray("dungeon", "playerParent") instance=ExtResource("2_c4dt5")]
+[node name="BossHealthBar" parent="UI" parent_id_path=PackedInt32Array(2138670810) index="3" unique_id=1201514310 instance=ExtResource("7_hbar")]
+position = Vector2(168, 3948)
+scale = Vector2(36, 36)
+
+[node name="Boss" parent="." index="6" unique_id=1571924490 node_paths=PackedStringArray("dungeon", "playerParent") instance=ExtResource("6_boss")]
 z_index = 101
 scale = Vector2(0.25, 0.25)
 dungeon = NodePath("../Dungeon")
 playerParent = NodePath("../Player")
 
-[node name="Dungeon" parent="." unique_id=1088688573 instance=ExtResource("1_c50jq")]
-z_index = -1
-rectangleW = 20
-rectangleH = 20
-
-[node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_kr6wy")]
-position = Vector2(452, -212)
-
-[node name="UI" type="CanvasLayer" parent="." unique_id=862521713]
-
-[node name="BossHealthBar" parent="UI" unique_id=1626104838 instance=ExtResource("2_b5bn4")]
-position = Vector2(168, 3948)
-scale = Vector2(36, 36)
-
-[node name="HealthBar" parent="UI" unique_id=1114789225 instance=ExtResource("2_b5bn4")]
-position = Vector2(24, 564)
-
-[node name="MadnessBar" parent="UI" unique_id=643711500 instance=ExtResource("6_mbar")]
-position = Vector2(24, 610)
-
-[node name="CoinBar" parent="UI" unique_id=80620860 instance=ExtResource("7_cbar")]
-position = Vector2(1200, 44)
-
 [connection signal="defeated" from="Boss" to="." method="_on_boss_defeated"]
-[connection signal="death" from="UI/HealthBar" to="." method="_on_health_bar_death"]

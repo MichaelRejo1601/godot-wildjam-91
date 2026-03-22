@@ -142,6 +142,24 @@ func _setup_exit_door() -> void:
 
 
 func _on_exit_door_entered() -> void:
+	_store_player_runtime_stats_for_transition()
 	var target := nextLevel if not nextLevel.is_empty() else gameOver
 	if not target.is_empty():
 		SceneLoader.load_scene(target, false)
+
+
+func _store_player_runtime_stats_for_transition() -> void:
+	var player = get_node_or_null("Player/Player")
+	if player == null:
+		player = get_node_or_null("Player/CharacterBody2D")
+	if player == null:
+		return
+
+	var root = get_tree().root
+	if root == null:
+		return
+
+	if player.has_method("get"):
+		root.set_meta("transition_player_health", int(player.get("current_health")))
+		root.set_meta("transition_player_madness", int(player.get("current_madness")))
+		root.set_meta("transition_player_coins", int(player.get("current_coins")))
