@@ -22,6 +22,7 @@ func _ready() -> void:
 	call_deferred("_setup_madness_bar")
 	call_deferred("_setup_coin_bar")
 	call_deferred("_setup_exit_door")
+	call_deferred("_fade_in_from_black")
 
 
 func _clear_editor_placed_entities() -> void:
@@ -159,6 +160,24 @@ func _setup_exit_door() -> void:
 		return
 	if dungeon.has_signal("exit_door_entered"):
 		dungeon.exit_door_entered.connect(_on_exit_door_entered)
+
+
+func _fade_in_from_black() -> void:
+	# Create a black overlay on a high CanvasLayer so it covers everything
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	add_child(canvas_layer)
+
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 1)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas_layer.add_child(overlay)
+
+	# Fade out the black overlay to reveal the game
+	var tween = create_tween()
+	tween.tween_property(overlay, "color:a", 0.0, 1.5).set_ease(Tween.EASE_IN)
+	tween.tween_callback(canvas_layer.queue_free)
 
 
 func _on_exit_door_entered() -> void:
