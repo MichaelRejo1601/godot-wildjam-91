@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://duogqvoaxf4wn" path="res://assets/characters/hands/hands_1.png" id="5_xcisb"]
 [ext_resource type="Texture2D" uid="uid://ctunb7pdic328" path="res://assets/held_items/Lantern_animated.png" id="6_socpp"]
 [ext_resource type="Texture2D" uid="uid://fsc70y6at75t" path="res://assets/held_items/Gunl.png" id="7_fxc31"]
+[ext_resource type="Texture2D" uid="uid://bd3354lgsuhac" path="res://assets/held_items/shovel.png" id="8_puxyr"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ky53y"]
 radius = 7.5
@@ -146,6 +147,17 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_mmokv"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_puxyr")
+}],
+"loop": true,
+"name": &"Shovel",
+"speed": 5.0
+}]
+
 [node name="Player" type="Node2D" unique_id=201667921]
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=1711886938]
@@ -195,7 +207,20 @@ animation = &"On"
 
 [node name="Gun" type="AnimatedSprite2D" parent="Player/MovingHands/Items" unique_id=1118997219]
 self_modulate = Color(0.4026307, 0.5066397, 0.6422597, 1)
-position = Vector2(19, -4)
+position = Vector2(19, -3)
 scale = Vector2(0.6, 0.6)
 sprite_frames = SubResource("SpriteFrames_8djf2")
 animation = &"Gun"
+
+[node name="Shovel" type="AnimatedSprite2D" parent="Player/MovingHands/Items" unique_id=908667383]
+self_modulate = Color(0.3034711, 0.32057673, 0.23513156, 1)
+position = Vector2(17, 22)
+scale = Vector2(1.15, 1.15)
+sprite_frames = SubResource("SpriteFrames_mmokv")
+animation = &"Shovel"
+
+[node name="Handle" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=7784633]
+position = Vector2(0, 4.3478265)
+
+[node name="Head" type="Node2D" parent="Player/MovingHands/Items/Shovel" unique_id=144676139]
+position = Vector2(0, -5)
