@@ -1,7 +1,7 @@
 extends Node2D
 
 var rng = RandomNumberGenerator.new()
-@export var rectangleW : int = 10
+@export var rectangleW : int = 250
 @export var rectangleH : int = 10
 @onready var sand_layer: TileMapLayer = $SandTileMapLayer
 @onready var wall_layer: TileMapLayer = $WallTileMapLayer
