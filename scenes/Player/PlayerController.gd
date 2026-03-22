@@ -335,6 +335,10 @@ func take_damage(amount: int = 1) -> void:
 	health_changed.emit(current_health)
 
 
+func get_max_health() -> int:
+	return MAX_HP
+
+
 func _spawn_blood_on_damage() -> void:
 	var blood := BloodScene.instantiate()
 	var blood_position: Vector2 = global_position + Vector2(rng.randf_range(-3.0, 3.0), rng.randf_range(2.0, 7.0))

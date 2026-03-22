@@ -73,6 +73,9 @@ func _setup_health_bar() -> void:
 	if player.has_signal("health_changed"):
 		player.health_changed.connect(Callable(health_bar, "update_health"))
 
+	if health_bar.has_method("set_max_health") and player.has_method("get_max_health"):
+		health_bar.set_max_health(int(player.get_max_health()))
+
 	health_bar.update_health(player.current_health)
 
 

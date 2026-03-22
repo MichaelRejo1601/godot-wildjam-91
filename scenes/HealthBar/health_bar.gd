@@ -2,7 +2,7 @@ class_name HealthBar
 extends Node2D
 
 @onready var sprite: Sprite2D = $Sprite2D
-const MAX_HP = 14
+@export var max_hp: int = 14
 signal death
 
 var textures = [
@@ -25,12 +25,20 @@ var textures = [
 
 
 func _ready() -> void:
-	update_health(MAX_HP)
+	update_health(max_hp)
 
 
 func update_health(hp):
-	hp = clamp(hp, 0, MAX_HP)
-	var texture_index = clamp(MAX_HP - hp, 0, textures.size() - 1)
+	hp = clamp(hp, 0, max_hp)
+	var hp_ratio := 0.0 if max_hp <= 0 else float(hp) / float(max_hp)
+	# Map to nearest depletion frame based on percentage left.
+	var depletion_ratio := 1.0 - hp_ratio
+	var texture_index := int(round(depletion_ratio * float(textures.size() - 1)))
+	texture_index = clamp(texture_index, 0, textures.size() - 1)
 	sprite.texture = textures[texture_index]
 	if hp == 0:
 		death.emit()
+
+
+func set_max_health(value: int) -> void:
+	max_hp = max(value, 1)

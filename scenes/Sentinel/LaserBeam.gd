@@ -29,8 +29,24 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body == source:
 		return
-	if body == target and body is CharacterBody2D:
+	if _is_valid_damage_target(body):
 		if body.has_method("take_damage"):
 			body.take_damage(damage)
+		elif body.get_parent() != null and body.get_parent().has_method("take_damage"):
+			body.get_parent().take_damage(damage)
 		# body.velocity += direction * knockback
-	queue_free()
+		queue_free()
+
+
+func _is_valid_damage_target(body: Node) -> bool:
+	if body == null:
+		return false
+	if body == target:
+		return true
+	if target != null and body.get_parent() == target:
+		return true
+	if body.is_in_group("player"):
+		return true
+	if body.get_parent() != null and body.get_parent().is_in_group("player"):
+		return true
+	return false

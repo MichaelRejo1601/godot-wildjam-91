@@ -16,6 +16,7 @@ config/features=PackedStringArray("4.6")
 run/max_fps=60
 boot_splash/image="uid://kwni1o7ymamm"
 config/icon="uid://b1d4jepeypg5u"
+boot_splash/icon="res://icon.png"
 
 [autoload]
 
@@ -29,7 +30,6 @@ ProjectUISoundController="*res://addons/maaacks_game_template/base/nodes/autoloa
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="viewport"
-window/stretch/aspect="keep"
 
 [editor_plugins]
 

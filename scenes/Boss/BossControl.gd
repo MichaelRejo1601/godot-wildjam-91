@@ -16,6 +16,12 @@ var floorMap: TileMapLayer
 @export var playerParent: Node2D
 var player: CharacterBody2D
 
+signal health_changed(hp: int)
+signal defeated
+
+@export var max_health: int = 14
+var current_health: int = 14
+
 var locationToGo: Vector2i = Vector2i.MAX
 var dash_direction: Vector2 = Vector2.ZERO
 var dash_timer: float = 0.0
@@ -39,12 +45,14 @@ enum BossState{
 var currState: BossState
 
 func _ready() -> void:
+	add_to_group("enemies")
+	current_health = max_health
+	health_changed.emit(current_health)
 	animated_sprite.play("default")
 	currState = BossState.ROAMAROUND
-	if playerParent.get_children() == null:
-		print("Player is null")
-	else:
-		player = playerParent.get_children()[0]
+	player = _find_player_body()
+	if player == null:
+		push_warning("Boss: Player is null.")
 	for child in dungeon.get_children():
 		print("Child", child)
 		if child is TileMapLayer:
@@ -59,6 +67,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if player == null or not is_instance_valid(player):
+		player = _find_player_body()
+		if player == null:
+			velocity = Vector2.ZERO
+			move_and_slide()
+			return
+
 	# _update_debug_dirs()
 	checkChange(delta)
 	move_and_slide()
@@ -184,3 +199,28 @@ func chooseAttack() -> BossState:
 		return BossState.DASHBUILDUP
 	else:
 		return BossState.RANGEATTACK
+
+
+func take_damage(amount: int = 1, _hit_direction: Vector2 = Vector2.ZERO, _hit_force: float = -1.0) -> void:
+	if amount <= 0 or current_health <= 0:
+		return
+
+	current_health = max(current_health - amount, 0)
+	health_changed.emit(current_health)
+	if current_health <= 0:
+		defeated.emit()
+		queue_free()
+
+
+func _find_player_body() -> CharacterBody2D:
+	if playerParent == null:
+		return null
+
+	if playerParent is CharacterBody2D:
+		return playerParent as CharacterBody2D
+
+	for child in playerParent.get_children():
+		if child is CharacterBody2D:
+			return child as CharacterBody2D
+
+	return null
