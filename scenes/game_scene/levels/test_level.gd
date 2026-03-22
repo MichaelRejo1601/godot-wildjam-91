@@ -3,11 +3,14 @@ extends Node2D
 signal level_lost
 @export_file("*.tscn") var gameOver : String
 @export_file("*.tscn") var nextLevel : String
+@export_file("*.mp3") var level1_music_path: String = "res://assets/toiletpaper5.mp3"
 const PLACEHOLDER_SCENES := {
 	"res://scenes/Sentinel/Sentinel.tscn": true,
 	"res://scenes/Mummy/Mummy.tscn": true,
 	"res://scenes/Chest/Chest.tscn": true,
 }
+
+var _level_music_player: AudioStreamPlayer = null
 
 func _ready() -> void:
 	# Keep a single run start timestamp so end stats include the full run across levels.
@@ -16,6 +19,8 @@ func _ready() -> void:
 		if not root.has_meta("run_start_time"):
 			root.set_meta("run_start_time", Time.get_ticks_msec())
 		root.set_meta("level_start_time", root.get_meta("run_start_time"))
+
+	_start_level1_music_if_applicable()
 
 	_clear_editor_placed_entities()
 	print("Test level loaded: spawning test objects")
@@ -185,10 +190,38 @@ func _fade_in_from_black() -> void:
 
 
 func _on_exit_door_entered() -> void:
+	_stop_level_music()
 	_store_player_runtime_stats_for_transition()
 	var target := nextLevel if not nextLevel.is_empty() else gameOver
 	if not target.is_empty():
 		SceneLoader.load_scene(target, false)
+
+
+func _start_level1_music_if_applicable() -> void:
+	# Level2 inherits this script, so gate playback to the base first-level scene.
+	if not get_scene_file_path().ends_with("test_level.tscn"):
+		return
+	if level1_music_path.is_empty():
+		return
+	if not ResourceLoader.exists(level1_music_path):
+		push_warning("TestLevel: Missing level music at path: %s" % level1_music_path)
+		return
+
+	if _level_music_player == null or not is_instance_valid(_level_music_player):
+		_level_music_player = AudioStreamPlayer.new()
+		_level_music_player.name = "LevelMusicPlayer"
+		add_child(_level_music_player)
+
+	_level_music_player.stream = load(level1_music_path) as AudioStream
+	if _level_music_player.stream != null:
+		_level_music_player.play()
+
+
+func _stop_level_music() -> void:
+	if _level_music_player == null or not is_instance_valid(_level_music_player):
+		return
+	if _level_music_player.playing:
+		_level_music_player.stop()
 
 
 func _store_player_runtime_stats_for_transition() -> void:
