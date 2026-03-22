@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://b57gxx1017wff"]
+
+[ext_resource type="Texture2D" uid="uid://2pjhhj1j87lw" path="res://assets/characters/BeeBoss.png" id="1_6mgx4"]
+[ext_resource type="Script" uid="uid://cb6n8jiovdsv6" path="res://scenes/Boss/BossControl.gd" id="1_epoof"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_epoof"]
+size = Vector2(245, 240)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i8kgy"]
+atlas = ExtResource("1_6mgx4")
+region = Rect2(0, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_akl0j"]
+atlas = ExtResource("1_6mgx4")
+region = Rect2(256, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vg1s6"]
+atlas = ExtResource("1_6mgx4")
+region = Rect2(512, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tmgwq"]
+atlas = ExtResource("1_6mgx4")
+region = Rect2(768, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7p5wi"]
+atlas = ExtResource("1_6mgx4")
+region = Rect2(1024, 0, 256, 256)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lx8rl"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i8kgy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_akl0j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vg1s6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tmgwq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7p5wi")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"new_animation",
+"speed": 5.0
+}]
+
+[node name="Boss" type="CharacterBody2D" unique_id=291328307]
+script = ExtResource("1_epoof")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1729280563]
+position = Vector2(-0.5, 2)
+shape = SubResource("RectangleShape2D_epoof")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=523642338]
+sprite_frames = SubResource("SpriteFrames_lx8rl")
+frame_progress = 0.43680692

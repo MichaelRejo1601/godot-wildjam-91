@@ -2,12 +2,33 @@
 
 [ext_resource type="Script" uid="uid://t0odlhkioepb" path="res://scenes/game_scene/levels/level2.gd" id="1_bdaix"]
 [ext_resource type="PackedScene" uid="uid://wpqx11cocj0p" path="res://scenes/DungeonLevel2/DungeonLevel2.tscn" id="1_c50jq"]
+[ext_resource type="PackedScene" uid="uid://d2drp8aj85r15" path="res://scenes/HealthBar/HealthBar.tscn" id="2_b5bn4"]
+[ext_resource type="PackedScene" uid="uid://b57gxx1017wff" path="res://scenes/Boss/Boss.tscn" id="2_c4dt5"]
 [ext_resource type="PackedScene" uid="uid://dmj1es5b4367j" path="res://scenes/Player/Player.tscn" id="2_kr6wy"]
 
 [node name="Level2" type="Node2D" unique_id=681203316]
 script = ExtResource("1_bdaix")
+healthBarScene = ExtResource("2_b5bn4")
+
+[node name="Boss" parent="." unique_id=291328307 node_paths=PackedStringArray("dungeon", "playerParent") instance=ExtResource("2_c4dt5")]
+z_index = 101
+scale = Vector2(0.25, 0.25)
+dungeon = NodePath("../DungeonLevel2")
+playerParent = NodePath("../Player")
 
 [node name="DungeonLevel2" parent="." unique_id=1088688573 instance=ExtResource("1_c50jq")]
+rectangleW = 20
+rectangleH = 20
 
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_kr6wy")]
+z_index = 1
 position = Vector2(452, -212)
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=862521713]
+
+[node name="BossHealthBar" parent="UI" unique_id=1626104838 instance=ExtResource("2_b5bn4")]
+position = Vector2(168, 3948)
+scale = Vector2(36, 36)
+
+[node name="HealthBar" parent="UI" unique_id=1114789225 instance=ExtResource("2_b5bn4")]
+position = Vector2(24, 564)
