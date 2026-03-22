@@ -1,4 +1,4 @@
-extends Node2D
+extends "res://scenes/game_scene/levels/test_level.gd"
 
 
 @export var playerCoord: Vector2i = Vector2i(2, 5)
@@ -6,38 +6,41 @@ extends Node2D
 @export var bossSpawnCoord: Vector2i = Vector2i(2, 5)
 @export var chest: PackedScene
 @export var healthBarScene : PackedScene
-@export var gameWinScreen: PackedScene
-@export var gameOver: PackedScene
+@export var game_win_scene: PackedScene
+@export var game_over_scene: PackedScene
 @export var boss_health_bar_world_offset: Vector2 = Vector2(0, -54)
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:	
-	# var bar = healthBarScene.instantiate()
-	# add_child(bar)
+
+func _ready() -> void:
+	# Keep shared level lifecycle metadata and editor cleanup from level 1.
+	get_tree().root.set_meta("level_start_time", Time.get_ticks_msec())
+	_clear_editor_placed_entities()
 	call_deferred("_place_player_on_sand")
 	call_deferred("_setup_health_bar")
+	call_deferred("_setup_madness_bar")
+	call_deferred("_setup_coin_bar")
 	call_deferred("_setup_boss_health_bar")
-	pass # Replace with function body.
 
 
 func _process(_delta: float) -> void:
 	_update_boss_health_bar_position()
 
+
 func _place_player_on_sand() -> void:
-	var dungeon = get_node_or_null("DungeonLevel2")
+	var dungeon = get_node_or_null("Dungeon")
 	var player = get_node_or_null("Player")
 	var boss = get_node_or_null("Boss")
 	if dungeon == null or player == null:
-		push_warning("TestLevel: Missing Dungeon or Player node; cannot place player on sand.")
+		push_warning("Level2: Missing Dungeon or Player node; cannot place player on sand.")
 		return
 
 	var sand_layer = dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer
 	if sand_layer == null:
-		push_warning("TestLevel: Missing SandTileMapLayer; cannot place player on sand.")
+		push_warning("Level2: Missing SandTileMapLayer; cannot place player on sand.")
 		return
 
 	var sand_cells = sand_layer.get_used_cells()
 	if sand_cells.is_empty():
-		push_warning("TestLevel: No generated sand cells found for player spawn.")
+		push_warning("Level2: No generated sand cells found for player spawn.")
 		return
 
 	var spawn_cell: Vector2i = playerCoord
@@ -66,7 +69,7 @@ func _place_player_on_sand() -> void:
 
 
 func _on_spawn_boss(_pos: Vector2) -> void:
-	var dungeon = get_node_or_null("DungeonLevel2")
+	var dungeon = get_node_or_null("Dungeon")
 	var boss = get_node_or_null("Boss")
 	if dungeon == null or boss == null:
 		return
@@ -84,26 +87,6 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 		if boss.has_method("get"):
 			boss_health_bar.update_health(boss.get("current_health"))
 		boss_health_bar.show()
-
-
-func _setup_health_bar() -> void:
-	var player = get_node_or_null("Player/Player")
-	if player == null:
-		player = get_node_or_null("Player/CharacterBody2D")
-	var health_bar = get_node_or_null("UI/HealthBar")
-	if player == null or health_bar == null:
-		push_warning("Level2: Missing Player or HealthBar; cannot wire player health UI.")
-		return
-
-	if player.has_signal("health_changed") and not player.health_changed.is_connected(Callable(health_bar, "update_health")):
-		player.health_changed.connect(Callable(health_bar, "update_health"))
-
-	if health_bar.has_method("set_max_health") and player.has_method("get_max_health"):
-		health_bar.set_max_health(int(player.get_max_health()))
-
-	if player.has_method("get"):
-		health_bar.update_health(player.get("current_health"))
-
 
 func _setup_boss_health_bar() -> void:
 	var boss = get_node_or_null("Boss")
@@ -139,13 +122,15 @@ func _setup_boss_health_bar() -> void:
 
 
 func _on_boss_defeated() -> void:
-	SceneLoader.load_scene(gameWinScreen.resource_path, false)
-	pass # Replace with function body.
+	if game_win_scene != null:
+		SceneLoader.load_scene(game_win_scene.resource_path, false)
 
 
 func _on_health_bar_death() -> void:
-	SceneLoader.load_scene(gameOver.resource_path, false)
-	pass # Replace with function body.
+	if game_over_scene != null:
+		SceneLoader.load_scene(game_over_scene.resource_path, false)
+
+
 func _update_boss_health_bar_position() -> void:
 	var boss = get_node_or_null("Boss")
 	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
