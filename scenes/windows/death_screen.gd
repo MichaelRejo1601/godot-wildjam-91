@@ -22,11 +22,11 @@ func _ready() -> void:
 		elif "current_coins" in player:
 			coins = player.current_coins
 
-	coins_label.text = "💰 Coins Collected: %d" % coins
+	coins_label.text = "Coins Collected: %d" % coins
 
 	# Calculate time survived
 	var time_survived = _calculate_time_survived()
-	time_label.text = "⏱ Time Survived: %ds" % time_survived
+	time_label.text = "Time Survived: %ds" % time_survived
 
 	# Play YOU DIED flicker animation
 	if animation_player != null:

@@ -12,6 +12,7 @@
 
 [node name="TestLevel" type="Node2D" unique_id=1]
 script = ExtResource("1")
+gameOver = "res://scenes/windows/death_screen.tscn"
 
 nextLevel = "uid://df2isiawpy4u6"
 

@@ -1,6 +1,11 @@
 [gd_scene format=3 uid="uid://cngq7343stehm"]
 
 [ext_resource type="Script" path="res://scenes/windows/death_screen.gd" id="1_q0c0x"]
+[ext_resource type="Texture2D" path="res://assets/death_screen_icons/skull.png" id="2_skull"]
+[ext_resource type="Texture2D" path="res://assets/death_screen_icons/coin.png" id="3_coin"]
+[ext_resource type="Texture2D" path="res://assets/death_screen_icons/clock.png" id="4_clock"]
+[ext_resource type="Texture2D" path="res://assets/death_screen_icons/play.png" id="5_play"]
+[ext_resource type="Texture2D" path="res://assets/death_screen_icons/home.png" id="6_home"]
 
 [sub_resource type="Animation" id="TitlePulse"]
 resource_name = "title_pulse"
@@ -60,9 +65,9 @@ alignment = 1
 [node name="SkullContainer" type="Control" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 150)
 
-[node name="SkullLabel" type="Label" parent="CenterContainer/VBoxContainer/SkullContainer"]
+[node name="SkullIcon" type="TextureRect" parent="CenterContainer/VBoxContainer/SkullContainer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 8
@@ -70,16 +75,14 @@ anchor_left = 0.5
 anchor_top = 0.0
 anchor_right = 0.5
 anchor_bottom = 0.0
-offset_left = -70.0
+offset_left = -125.0
 offset_top = 0.0
-offset_right = 70.0
-offset_bottom = 140.0
+offset_right = 125.0
+offset_bottom = 250.0
 grow_horizontal = 2
 grow_vertical = 1
-theme_override_font_sizes/font_size = 140
-text = "☠"
-horizontal_alignment = 1
-vertical_alignment = 1
+texture = ExtResource("2_skull")
+expand_mode = 3
 
 [node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -106,7 +109,18 @@ layout_mode = 2
 alignment = 1
 modulate = Color(1, 1, 1, 1)
 
-[node name="CoinsLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer"]
+[node name="CoinsRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/StatsContainer"]
+layout_mode = 2
+alignment = 1
+separation = 10
+
+[node name="CoinIcon" type="TextureRect" parent="CenterContainer/VBoxContainer/StatsContainer/CoinsRow"]
+custom_minimum_size = Vector2(80, 65)
+layout_mode = 2
+texture = ExtResource("3_coin")
+expand_mode = 3
+
+[node name="CoinsLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer/CoinsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
@@ -114,10 +128,21 @@ theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-text = "💰 Coins Collected: 0"
-horizontal_alignment = 1
+text = "Coins Collected: 0"
+horizontal_alignment = 0
 
-[node name="TimeLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer"]
+[node name="TimeRow" type="HBoxContainer" parent="CenterContainer/VBoxContainer/StatsContainer"]
+layout_mode = 2
+alignment = 1
+separation = 10
+
+[node name="ClockIcon" type="TextureRect" parent="CenterContainer/VBoxContainer/StatsContainer/TimeRow"]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+texture = ExtResource("4_clock")
+expand_mode = 3
+
+[node name="TimeLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsContainer/TimeRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
@@ -125,8 +150,8 @@ theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-text = "⏱ Time Survived: 0s"
-horizontal_alignment = 1
+text = "Time Survived: 0s"
+horizontal_alignment = 0
 
 [node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -146,6 +171,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(280, 70)
 theme_override_font_sizes/font_size = 22
+theme_override_constants/h_separation = 15
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
@@ -153,7 +179,10 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_colors/font_outline_color = Color(1, 1, 1, 0)
 theme_override_colors/bg_color = Color(0.8, 0.1, 0.1, 0.9)
-text = "▶ PLAY AGAIN"
+icon = ExtResource("5_play")
+icon_alignment = 0
+self_modulate = Color(1, 1, 1, 1)
+text = "PLAY AGAIN"
 
 [node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer/ButtonContainer"]
 unique_name_in_owner = true
@@ -161,6 +190,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(280, 70)
 theme_override_font_sizes/font_size = 22
+theme_override_constants/h_separation = 15
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
@@ -168,7 +198,13 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_colors/font_outline_color = Color(1, 1, 1, 0)
 theme_override_colors/bg_color = Color(0.3, 0.3, 0.3, 0.9)
-text = "← MAIN MENU"
+icon = ExtResource("6_home")
+icon_alignment = 0
+text = "MAIN MENU"
+
+[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
 
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ButtonContainer/PlayAgainButton" to="." method="_on_play_again_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/ButtonContainer/MainMenuButton" to="." method="_on_main_menu_button_pressed"]
