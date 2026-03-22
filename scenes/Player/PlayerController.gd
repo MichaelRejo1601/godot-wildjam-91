@@ -64,7 +64,8 @@ void fragment() {
 @export var dash_trail_z_index: int = 180
 @export var dash_trail_tint: Color = Color(0.70, 0.95, 1.0, 1.0)
 @export var dash_trail_scale_boost: float = 1.10
-@export var dash_trail_back_offset: float = 10.0
+@export var dash_trail_back_offset: float = 0.0
+@export var dash_trail_post_duration: float = 0.08
 @export var back_hand_z_index: int = 1
 @export var item_z_index: int = 2
 @export var front_hand_z_index: int = 3
@@ -101,6 +102,7 @@ var _dash_cooldown_remaining: float = 0.0
 var _dash_direction: Vector2 = Vector2.RIGHT
 var _space_pressed_last_frame: bool = false
 var _dash_trail_spawn_timer: float = 0.0
+var _dash_trail_post_time_remaining: float = 0.0
 
 # Whip attack system
 var is_attacking := false
@@ -189,6 +191,8 @@ func _physics_process(_delta: float) -> void:
 		_dash_time_remaining = maxf(_dash_time_remaining - _delta, 0.0)
 	if _dash_cooldown_remaining > 0.0:
 		_dash_cooldown_remaining = maxf(_dash_cooldown_remaining - _delta, 0.0)
+	if _dash_trail_post_time_remaining > 0.0:
+		_dash_trail_post_time_remaining = maxf(_dash_trail_post_time_remaining - _delta, 0.0)
 
 	var space_pressed: bool = Input.is_key_pressed(KEY_SPACE)
 	var dash_pressed: bool = space_pressed and not _space_pressed_last_frame
@@ -200,6 +204,7 @@ func _physics_process(_delta: float) -> void:
 		_dash_time_remaining = maxf(dash_duration, 0.01)
 		_dash_cooldown_remaining = maxf(dash_cooldown, 0.0)
 		_dash_trail_spawn_timer = 0.0
+		_dash_trail_post_time_remaining = 0.0
 
 	_space_pressed_last_frame = space_pressed
 
@@ -213,7 +218,12 @@ func _physics_process(_delta: float) -> void:
 		var current_speed := SPEED * SPRINT_MULTIPLIER if is_sprinting else SPEED
 		velocity = input_direction * current_speed
 
-	if is_dashing:
+	if was_dashing and not is_dashing:
+		_dash_trail_post_time_remaining = maxf(dash_trail_post_duration, 0.0)
+		_dash_trail_spawn_timer = 0.0
+
+	var trail_active: bool = is_dashing or _dash_trail_post_time_remaining > 0.0
+	if trail_active:
 		_dash_trail_spawn_timer -= _delta
 		if _dash_trail_spawn_timer <= 0.0:
 			_spawn_dash_afterimage()
@@ -295,7 +305,7 @@ func _spawn_dash_afterimage() -> void:
 	ghost.global_scale = animated_sprite.global_scale * dash_trail_scale_boost
 	ghost.stop()
 	ghost.z_as_relative = false
-	ghost.z_index = dash_trail_z_index
+	ghost.z_index = animated_sprite.z_index - 1
 	var ghost_color: Color = Color(
 		dash_trail_tint.r,
 		dash_trail_tint.g,
