@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://dgg2dmvjt4615"]
+
+[ext_resource type="Texture2D" uid="uid://b1fos7lt3iudd" path="res://assets/floor/sandworm.png" id="1_07sj7"]
+[ext_resource type="Script" path="res://scenes/Sandhole/sandhole.gd" id="2_sandh"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5s5j8"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hlrt"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f8m4s"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ncq0y"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xdn84"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(0, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g2imm"]
+atlas = ExtResource("1_07sj7")
+region = Rect2(16, 32, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_h3fy2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5s5j8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hlrt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f8m4s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ncq0y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xdn84")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g2imm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 6.0
+}]
+
+[node name="Sandhole" type="Node2D" unique_id=915905891]
+script = ExtResource("2_sandh")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=599189511]
+rotation = -0.004845286
+sprite_frames = SubResource("SpriteFrames_h3fy2")
+frame_progress = 0.38764927

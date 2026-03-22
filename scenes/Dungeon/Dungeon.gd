@@ -46,7 +46,7 @@ var spawned_chests: Array[Node] = []
 
 var rng = RandomNumberGenerator.new()
 var chest_scene = preload("res://scenes/Chest/Chest.tscn")
-var exit_door_scene = preload("res://scenes/Dungeon/ExitDoor.tscn")
+var exit_door_scene = preload("res://scenes/Sandhole/sandhole.tscn")
 var spawned_exit_door: Node = null
 
 class Room:
