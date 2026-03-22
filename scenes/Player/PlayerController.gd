@@ -55,6 +55,9 @@ void fragment() {
 @export var hand_spacing: float = 4.0
 @export var gun_forward_offset: float = 3.0
 @export var lamp_offset: Vector2 = Vector2(0, 2)
+@export var dash_speed: float = 240.0
+@export var dash_duration: float = 0.22
+@export var dash_cooldown: float = 0.65
 @export var back_hand_z_index: int = 1
 @export var item_z_index: int = 2
 @export var front_hand_z_index: int = 3
@@ -86,6 +89,10 @@ var gun_shake_tween: Tween
 var controls_locked := false
 var current_held_item: HeldItem = HeldItem.GUN
 var lamp_is_on: bool = true
+var _dash_time_remaining: float = 0.0
+var _dash_cooldown_remaining: float = 0.0
+var _dash_direction: Vector2 = Vector2.RIGHT
+var _space_pressed_last_frame: bool = false
 
 # Whip attack system
 var is_attacking := false
@@ -169,10 +176,31 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	var sprint_pressed := Input.is_key_pressed(KEY_SPACE) or Input.is_key_pressed(KEY_SHIFT) or Input.is_action_pressed("ui_accept")
-	var is_sprinting := sprint_pressed and input_direction.length_squared() > 0.0
-	var current_speed := SPEED * SPRINT_MULTIPLIER if is_sprinting else SPEED
-	velocity = input_direction * current_speed
+	if _dash_time_remaining > 0.0:
+		_dash_time_remaining = maxf(_dash_time_remaining - _delta, 0.0)
+	if _dash_cooldown_remaining > 0.0:
+		_dash_cooldown_remaining = maxf(_dash_cooldown_remaining - _delta, 0.0)
+
+	var space_pressed: bool = Input.is_key_pressed(KEY_SPACE)
+	var dash_pressed: bool = space_pressed and not _space_pressed_last_frame
+	if dash_pressed and _dash_time_remaining <= 0.0 and _dash_cooldown_remaining <= 0.0:
+		if input_direction.length_squared() > 0.0:
+			_dash_direction = input_direction.normalized()
+		else:
+			_dash_direction = Vector2.LEFT if facing_left else Vector2.RIGHT
+		_dash_time_remaining = maxf(dash_duration, 0.01)
+		_dash_cooldown_remaining = maxf(dash_cooldown, 0.0)
+
+	_space_pressed_last_frame = space_pressed
+
+	var walk_pressed: bool = Input.is_key_pressed(KEY_SHIFT)
+	var is_sprinting: bool = (not walk_pressed) and input_direction.length_squared() > 0.0
+	if _dash_time_remaining > 0.0:
+		velocity = _dash_direction * dash_speed
+		is_sprinting = false
+	else:
+		var current_speed := SPEED * SPRINT_MULTIPLIER if is_sprinting else SPEED
+		velocity = input_direction * current_speed
 
 	update_animation(input_direction, is_sprinting)
 	move_and_slide()
