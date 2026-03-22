@@ -5,14 +5,16 @@ extends "res://scenes/game_scene/levels/test_level.gd"
 @export var chestCoord: Vector2i = Vector2i(10, 5)
 @export var bossSpawnCoord: Vector2i = Vector2i(2, 5)
 @export var chest: PackedScene
-@export var healthBarScene : PackedScene
 @export var game_win_scene: PackedScene
 @export var game_over_scene: PackedScene
 @export var boss_health_bar_world_offset: Vector2 = Vector2(0, -54)
 
+
 func _ready() -> void:
 	# Keep shared level lifecycle metadata and editor cleanup from level 1.
 	get_tree().root.set_meta("level_start_time", Time.get_ticks_msec())
+	if game_over_scene != null:
+		gameOver = game_over_scene.resource_path
 	_clear_editor_placed_entities()
 	call_deferred("_place_player_on_sand")
 	call_deferred("_setup_health_bar")
@@ -26,16 +28,11 @@ func _process(_delta: float) -> void:
 
 
 func _place_player_on_sand() -> void:
-	var dungeon = get_node_or_null("Dungeon")
 	var player = get_node_or_null("Player")
 	var boss = get_node_or_null("Boss")
-	if dungeon == null or player == null:
+	var sand_layer := _get_level2_sand_layer()
+	if sand_layer == null or player == null:
 		push_warning("Level2: Missing Dungeon or Player node; cannot place player on sand.")
-		return
-
-	var sand_layer = dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer
-	if sand_layer == null:
-		push_warning("Level2: Missing SandTileMapLayer; cannot place player on sand.")
 		return
 
 	var sand_cells = sand_layer.get_used_cells()
@@ -69,13 +66,9 @@ func _place_player_on_sand() -> void:
 
 
 func _on_spawn_boss(_pos: Vector2) -> void:
-	var dungeon = get_node_or_null("Dungeon")
 	var boss = get_node_or_null("Boss")
-	if dungeon == null or boss == null:
-		return
-
-	var sand_layer = dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer
-	if sand_layer == null:
+	var sand_layer := _get_level2_sand_layer()
+	if sand_layer == null or boss == null:
 		return
 
 	boss.global_position = sand_layer.to_global(sand_layer.map_to_local(bossSpawnCoord))
@@ -87,6 +80,7 @@ func _on_spawn_boss(_pos: Vector2) -> void:
 		if boss.has_method("get"):
 			boss_health_bar.update_health(boss.get("current_health"))
 		boss_health_bar.show()
+
 
 func _setup_boss_health_bar() -> void:
 	var boss = get_node_or_null("Boss")
@@ -126,11 +120,6 @@ func _on_boss_defeated() -> void:
 		SceneLoader.load_scene(game_win_scene.resource_path, false)
 
 
-func _on_health_bar_death() -> void:
-	if game_over_scene != null:
-		SceneLoader.load_scene(game_over_scene.resource_path, false)
-
-
 func _update_boss_health_bar_position() -> void:
 	var boss = get_node_or_null("Boss")
 	var boss_health_bar = get_node_or_null("UI/BossHealthBar")
@@ -142,3 +131,10 @@ func _update_boss_health_bar_position() -> void:
 	var world_position: Vector2 = boss.global_position + boss_health_bar_world_offset
 	var screen_position: Vector2 = get_viewport().get_canvas_transform() * world_position
 	boss_health_bar.position = screen_position
+
+
+func _get_level2_sand_layer() -> TileMapLayer:
+	var dungeon = get_node_or_null("Dungeon")
+	if dungeon == null:
+		return null
+	return dungeon.get_node_or_null("SandTileMapLayer") as TileMapLayer

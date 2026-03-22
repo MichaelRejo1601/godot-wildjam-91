@@ -14,7 +14,6 @@
 [node name="Level2" type="Node2D" unique_id=681203316]
 script = ExtResource("1_bdaix")
 chest = ExtResource("2_snnox")
-healthBarScene = ExtResource("2_b5bn4")
 game_win_scene = ExtResource("4_6rc7s")
 game_over_scene = ExtResource("5_vepb5")
 
@@ -25,11 +24,11 @@ dungeon = NodePath("../Dungeon")
 playerParent = NodePath("../Player")
 
 [node name="Dungeon" parent="." unique_id=1088688573 instance=ExtResource("1_c50jq")]
+z_index = -1
 rectangleW = 20
 rectangleH = 20
 
 [node name="Player" parent="." unique_id=201667921 instance=ExtResource("2_kr6wy")]
-z_index = 1
 position = Vector2(452, -212)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=862521713]
