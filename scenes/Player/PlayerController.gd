@@ -58,6 +58,13 @@ void fragment() {
 @export var dash_speed: float = 240.0
 @export var dash_duration: float = 0.22
 @export var dash_cooldown: float = 0.65
+@export var dash_trail_spawn_interval: float = 0.015
+@export var dash_trail_lifetime: float = 0.28
+@export var dash_trail_alpha: float = 0.75
+@export var dash_trail_z_index: int = 180
+@export var dash_trail_tint: Color = Color(0.70, 0.95, 1.0, 1.0)
+@export var dash_trail_scale_boost: float = 1.10
+@export var dash_trail_back_offset: float = 10.0
 @export var back_hand_z_index: int = 1
 @export var item_z_index: int = 2
 @export var front_hand_z_index: int = 3
@@ -93,6 +100,7 @@ var _dash_time_remaining: float = 0.0
 var _dash_cooldown_remaining: float = 0.0
 var _dash_direction: Vector2 = Vector2.RIGHT
 var _space_pressed_last_frame: bool = false
+var _dash_trail_spawn_timer: float = 0.0
 
 # Whip attack system
 var is_attacking := false
@@ -176,6 +184,7 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var input_direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var was_dashing: bool = _dash_time_remaining > 0.0
 	if _dash_time_remaining > 0.0:
 		_dash_time_remaining = maxf(_dash_time_remaining - _delta, 0.0)
 	if _dash_cooldown_remaining > 0.0:
@@ -190,17 +199,27 @@ func _physics_process(_delta: float) -> void:
 			_dash_direction = Vector2.LEFT if facing_left else Vector2.RIGHT
 		_dash_time_remaining = maxf(dash_duration, 0.01)
 		_dash_cooldown_remaining = maxf(dash_cooldown, 0.0)
+		_dash_trail_spawn_timer = 0.0
 
 	_space_pressed_last_frame = space_pressed
 
 	var walk_pressed: bool = Input.is_key_pressed(KEY_SHIFT)
 	var is_sprinting: bool = (not walk_pressed) and input_direction.length_squared() > 0.0
-	if _dash_time_remaining > 0.0:
+	var is_dashing: bool = _dash_time_remaining > 0.0
+	if is_dashing:
 		velocity = _dash_direction * dash_speed
 		is_sprinting = false
 	else:
 		var current_speed := SPEED * SPRINT_MULTIPLIER if is_sprinting else SPEED
 		velocity = input_direction * current_speed
+
+	if is_dashing:
+		_dash_trail_spawn_timer -= _delta
+		if _dash_trail_spawn_timer <= 0.0:
+			_spawn_dash_afterimage()
+			_dash_trail_spawn_timer = maxf(dash_trail_spawn_interval, 0.01)
+	elif was_dashing:
+		_dash_trail_spawn_timer = 0.0
 
 	update_animation(input_direction, is_sprinting)
 	move_and_slide()
@@ -256,6 +275,39 @@ func update_animation(input_direction: Vector2, is_sprinting: bool) -> void:
 
 	if animated_sprite.animation != animation_name or not animated_sprite.is_playing():
 		animated_sprite.play(animation_name)
+
+
+func _spawn_dash_afterimage() -> void:
+	if animated_sprite == null or animated_sprite.sprite_frames == null:
+		return
+
+	var parent_node: Node = get_parent()
+	if parent_node == null:
+		parent_node = self
+
+	var ghost := animated_sprite.duplicate() as AnimatedSprite2D
+	if ghost == null:
+		return
+	ghost.visible = true
+	ghost.top_level = true
+	ghost.global_position = animated_sprite.global_position - (_dash_direction * dash_trail_back_offset)
+	ghost.global_rotation = animated_sprite.global_rotation
+	ghost.global_scale = animated_sprite.global_scale * dash_trail_scale_boost
+	ghost.stop()
+	ghost.z_as_relative = false
+	ghost.z_index = dash_trail_z_index
+	var ghost_color: Color = Color(
+		dash_trail_tint.r,
+		dash_trail_tint.g,
+		dash_trail_tint.b,
+		clampf(dash_trail_alpha, 0.0, 1.0) * clampf(dash_trail_tint.a, 0.0, 1.0)
+	)
+	ghost.modulate = ghost_color
+	parent_node.add_child(ghost)
+
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_property(ghost, "modulate", Color(ghost_color.r, ghost_color.g, ghost_color.b, 0.0), maxf(dash_trail_lifetime, 0.01))
+	fade_tween.tween_callback(Callable(ghost, "queue_free"))
 
 
 func take_damage(amount: int = 1) -> void:
