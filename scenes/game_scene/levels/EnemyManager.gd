@@ -30,7 +30,7 @@ func _load_rooms() -> void:
 	var player_node = get_tree().get_first_node_in_group("player")
 
 	if dungeon:
-		rooms = dungeon.rooms
+a		rooms = dungeon.rooms
 		for r in rooms:
 			var sentinalsInThisRoom = randi_range(minSentinalsPerRoom, maxSentinalsPerRoom)
 			var mummyInThisRoom = randi_range(minMummysPerRoom, maxMummysPerRoom)

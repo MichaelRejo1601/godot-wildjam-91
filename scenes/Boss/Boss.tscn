@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://cb6n8jiovdsv6" path="res://scenes/Boss/BossControl.gd" id="1_epoof"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epoof"]
-size = Vector2(245, 240)
+size = Vector2(120, 120)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i8kgy"]
 atlas = ExtResource("1_6mgx4")
